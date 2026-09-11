@@ -12,6 +12,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .pb-safe {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
         /* Disable native virtual keyboard on mobile for the active display */
         .no-keyboard {
             pointer-events: none;
@@ -23,7 +28,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 h-screen font-sans text-gray-800 flex flex-col overflow-hidden selection:bg-blue-200">
+<body class="bg-gray-50 h-[100dvh] font-sans text-gray-800 flex flex-col overflow-hidden selection:bg-blue-200 pb-safe">
 
     <!-- Header -->
     <header class="py-4 text-center bg-white shadow-sm z-10 flex-shrink-0">
@@ -45,8 +50,8 @@
     </div>
 
     <!-- Numeric Keypad -->
-    <div class="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-3xl p-4 pb-8 flex-shrink-0 z-20">
-        <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto">
+    <div class="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-3xl p-4 pb-safe flex-shrink-0 z-20">
+        <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-4">
             <!-- First row -->
             <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="1">1</button>
             <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="2">2</button>
