@@ -5,89 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Currency Converter</title>
 
-    <!-- PWA Meta Tags -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#3b82f6">
     <link rel="apple-touch-icon" href="./icon-192x192.png">
 
-    <!-- Tailwind CSS (CDN for minimal setup) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* Disable number input arrows */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .pb-safe {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
         }
-        input[type="number"] {
-            -moz-appearance: textfield; /* Firefox */
+        /* Disable native virtual keyboard on mobile for the active display */
+        .no-keyboard {
+            pointer-events: none;
+        }
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans text-gray-800 selection:bg-blue-200">
+<body class="bg-gray-50 h-[100dvh] font-sans text-gray-800 flex flex-col overflow-hidden selection:bg-blue-200 pb-safe">
 
-    <div class="max-w-md mx-auto min-h-screen flex flex-col p-4">
+    <!-- Header -->
+    <header class="py-4 text-center bg-white shadow-sm z-10 flex-shrink-0">
+        <h1 class="text-xl font-bold text-gray-900 tracking-tight">Converter</h1>
+        <p id="lastUpdated" class="text-xs text-gray-500 mt-1">Loading rates...</p>
+    </header>
 
-        <!-- Header -->
-        <header class="py-6 text-center">
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Converter</h1>
-            <p id="lastUpdated" class="text-xs text-gray-500 mt-1">Loading rates...</p>
-        </header>
+    <!-- Currency List -->
+    <main class="flex-grow overflow-y-auto p-4 flex flex-col gap-3 pb-4" id="currencyList">
+        <!-- Currency rows will be injected here -->
+    </main>
 
-        <!-- Main Input Section -->
-        <main class="flex-grow flex flex-col gap-6">
+    <!-- Add Currency Button -->
+    <div class="px-4 pb-4 flex-shrink-0 bg-gray-50">
+        <button id="addCurrencyBtn" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-3 rounded-xl transition-colors shadow-sm flex justify-center items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            Add Currency
+        </button>
+    </div>
 
-            <!-- Base Currency Input Card -->
-            <div class="bg-blue-600 rounded-3xl p-6 shadow-lg shadow-blue-200 text-white relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white opacity-10"></div>
+    <!-- Numeric Keypad -->
+    <div class="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-3xl p-4 pb-safe flex-shrink-0 z-20">
+        <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-4">
+            <!-- First row -->
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="1">1</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="2">2</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="3">3</button>
 
-                <div class="flex justify-between items-center mb-4 relative z-10">
-                    <label for="amountInput" class="text-blue-100 font-medium">You pay</label>
-                    <select id="baseCurrencySelect" class="bg-blue-700/50 border-none text-white text-lg font-bold rounded-xl py-2 pl-3 pr-8 focus:ring-2 focus:ring-white/50 appearance-none cursor-pointer">
-                        <option value="EUR">EUR</option>
-                    </select>
-                </div>
+            <!-- Second row -->
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="4">4</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="5">5</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="6">6</button>
 
-                <div class="relative z-10">
-                    <input
-                        type="number"
-                        id="amountInput"
-                        value="1"
-                        min="0"
-                        step="any"
-                        inputmode="decimal"
-                        class="w-full bg-transparent border-none text-5xl font-bold text-white placeholder-blue-300 focus:ring-0 p-0"
-                        placeholder="0.00"
-                    >
-                </div>
-            </div>
+            <!-- Third row -->
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="7">7</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="8">8</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="9">9</button>
 
-            <!-- Converted Targets List -->
-            <div class="flex-grow">
-                <div class="flex justify-between items-end mb-3 px-1">
-                    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Converted</h2>
-                </div>
-
-                <ul id="targetsList" class="space-y-3">
-                    <!-- Target currencies will be injected here via JS -->
-                </ul>
-
-                <!-- Add Currency Select -->
-                <div class="mt-4 relative">
-                    <select id="addCurrencySelect" class="w-full bg-white border border-gray-200 text-gray-700 font-medium rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer shadow-sm text-center">
-                        <option value="" disabled selected>+ Add Currency</option>
-                        <!-- Options injected via JS -->
-                    </select>
-                    <!-- Custom chevron -->
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-
+            <!-- Fourth row -->
+            <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 text-2xl font-bold py-4 rounded-2xl transition-colors active:scale-95" data-val=".">.</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="0">0</button>
+            <button class="keypad-btn bg-red-100 hover:bg-red-200 text-red-600 flex justify-center items-center py-4 rounded-2xl transition-colors active:scale-95" data-val="delete">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path></svg>
+            </button>
+        </div>
     </div>
 
     <!-- App Logic -->
