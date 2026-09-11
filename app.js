@@ -6,6 +6,7 @@ let lastFetchDate = localStorage.getItem('lastFetchDate') || null;
 // New state for multi-directional calculation
 let activeIndex = 0; // The row currently being edited
 let activeValueString = '1'; // The raw string typed by user for the active row
+let shouldResetValue = true; // True if the next keypress should override the value
 
 // Elements
 const currencyList = document.getElementById('currencyList');
@@ -126,12 +127,19 @@ function handleKeypadInput(val) {
     if (val === 'delete') {
         activeValueString = activeValueString.slice(0, -1);
         if (activeValueString === '') activeValueString = '0';
+        shouldResetValue = false; // deleting implies we are editing now
     } else if (val === '.') {
-        if (!activeValueString.includes('.')) {
+        if (shouldResetValue) {
+            activeValueString = '0.';
+            shouldResetValue = false;
+        } else if (!activeValueString.includes('.')) {
             activeValueString += '.';
         }
     } else {
-        if (activeValueString === '0' && val !== '.') {
+        if (shouldResetValue) {
+            activeValueString = val;
+            shouldResetValue = false;
+        } else if (activeValueString === '0') {
             activeValueString = val;
         } else {
             // Limit length
@@ -191,6 +199,7 @@ function renderCurrencies() {
             if (activeIndex !== index) {
                 activeIndex = index;
                 activeValueString = displayValue;
+                shouldResetValue = true; // Reset on focus change
                 renderCurrencies();
             }
         });
@@ -227,7 +236,7 @@ function renderCurrencies() {
 
             <div class="flex-grow text-right overflow-hidden flex flex-col justify-center">
                 <div class="text-3xl font-bold tracking-tight text-gray-800 truncate w-full no-keyboard">
-                    ${displayValue}${isEditing && !displayValue.includes('.') ? '<span class="animate-pulse text-blue-500">|</span>' : ''}
+                    ${displayValue}${isEditing ? '<span class="animate-pulse text-blue-500">|</span>' : ''}
                 </div>
             </div>
         `;
@@ -248,13 +257,22 @@ function renderCurrencies() {
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const index = parseInt(e.currentTarget.dataset.index);
+
+            // Before deleting, determine what the value of the row that WILL become active is.
+            // If we are deleting the active row, row 0 will become active (unless we are deleting row 0, then the old row 1 becomes the new row 0).
+            let newValueForNextActive = '1';
+            if (activeIndex === index) {
+                const nextActiveIndex = index === 0 ? 1 : 0;
+                newValueForNextActive = calculateValue(nextActiveIndex);
+            }
+
             currencies.splice(index, 1);
 
             // Adjust active index if needed
             if (activeIndex === index) {
                 activeIndex = 0; // Reset to top
-                // Recalculate activeValueString from the new active element
-                activeValueString = calculateValue(0);
+                activeValueString = newValueForNextActive;
+                shouldResetValue = true;
             } else if (activeIndex > index) {
                 activeIndex--;
             }
