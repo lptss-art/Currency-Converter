@@ -115,6 +115,11 @@ function setupEventListeners() {
 
     keypadBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
+            // Trigger haptic feedback if supported (50ms vibration)
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
             // Prevent event from bubbling up to button children if clicked on SVG
             const val = e.currentTarget.dataset.val;
             handleKeypadInput(val);
