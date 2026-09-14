@@ -16,6 +16,7 @@
     <meta name="apple-mobile-web-app-title" content="Converter">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
     <style>
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
@@ -37,47 +38,71 @@
 <body class="bg-gray-50 h-[100dvh] font-sans text-gray-800 flex flex-col overflow-hidden selection:bg-blue-200 pb-safe">
 
     <!-- Header -->
-    <header class="py-4 text-center bg-white shadow-sm z-10 flex-shrink-0">
-        <h1 class="text-xl font-bold text-gray-900 tracking-tight">Converter</h1>
-        <p id="lastUpdated" class="text-xs text-gray-500 mt-1">Loading rates...</p>
+    <header class="py-2 px-3 bg-white shadow-sm z-10 flex-shrink-0 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <img src="./icon-192x192.png" alt="Logo" class="w-6 h-6 rounded-md">
+            <h1 class="text-base font-bold text-gray-900 tracking-tight">Universal Currency Converter</h1>
+        </div>
+        <p id="lastUpdated" class="text-[10px] text-gray-500 text-right max-w-[40%] leading-tight">Loading...</p>
     </header>
 
     <!-- Currency List -->
-    <main class="flex-grow overflow-y-auto p-4 flex flex-col gap-3 pb-4" id="currencyList">
+    <main class="flex-grow overflow-y-auto p-3 flex flex-col gap-2 pb-4" id="currencyList">
         <!-- Currency rows will be injected here -->
     </main>
 
+    <!-- Currency Selection Modal -->
+    <div id="currencyModal" class="hidden fixed inset-0 bg-black/50 z-50 flex-col pb-safe">
+        <div class="mt-auto bg-white rounded-t-3xl h-[85vh] flex flex-col">
+            <div class="p-4 border-b flex items-center justify-between">
+                <h2 class="text-xl font-bold">Select Currency</h2>
+                <button id="closeModalBtn" class="p-2 text-gray-500 hover:text-gray-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-4 border-b">
+                <input type="text" id="currencySearch" placeholder="Search currency..." class="w-full bg-gray-100 border-none rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none text-lg">
+            </div>
+            <div id="modalCurrencyList" class="flex-grow overflow-y-auto p-2 flex flex-col gap-1 pb-safe">
+                <!-- Currency options will be injected here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Add Currency Button -->
-    <div class="px-4 pb-4 flex-shrink-0 bg-gray-50">
-        <button id="addCurrencyBtn" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-3 rounded-xl transition-colors shadow-sm flex justify-center items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+    <div class="px-3 pb-2 flex-shrink-0 bg-gray-50 flex gap-2 mt-1">
+        <button id="addCurrencyBtn" class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 rounded-xl transition-colors shadow-sm flex justify-center items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             Add Currency
+        </button>
+        <button id="toggleDeleteBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-3 rounded-xl transition-colors shadow-sm flex justify-center items-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
         </button>
     </div>
 
     <!-- Numeric Keypad -->
-    <div class="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-3xl p-4 pb-safe flex-shrink-0 z-20">
-        <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-4">
+    <div class="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-2xl p-2 pb-safe flex-shrink-0 z-20">
+        <div class="grid grid-cols-3 gap-1.5 max-w-sm mx-auto mb-1">
             <!-- First row -->
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="1">1</button>
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="2">2</button>
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="3">3</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="1">1</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="2">2</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="3">3</button>
 
             <!-- Second row -->
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="4">4</button>
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="5">5</button>
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="6">6</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="4">4</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="5">5</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="6">6</button>
 
             <!-- Third row -->
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="7">7</button>
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="8">8</button>
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="9">9</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="7">7</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="8">8</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="9">9</button>
 
             <!-- Fourth row -->
-            <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 text-2xl font-bold py-4 rounded-2xl transition-colors active:scale-95" data-val=".">.</button>
-            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-2xl font-semibold py-4 rounded-2xl transition-colors active:scale-95" data-val="0">0</button>
-            <button class="keypad-btn bg-red-100 hover:bg-red-200 text-red-600 flex justify-center items-center py-4 rounded-2xl transition-colors active:scale-95" data-val="delete">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path></svg>
+            <button class="keypad-btn bg-gray-200 hover:bg-gray-300 text-gray-800 text-xl font-bold py-2 rounded-xl transition-colors active:scale-95" data-val=".">.</button>
+            <button class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xl font-semibold py-2 rounded-xl transition-colors active:scale-95" data-val="0">0</button>
+            <button class="keypad-btn bg-red-100 hover:bg-red-200 text-red-600 flex justify-center items-center py-2 rounded-xl transition-colors active:scale-95" data-val="delete">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path></svg>
             </button>
         </div>
     </div>
