@@ -7,12 +7,37 @@ let lastFetchDate = localStorage.getItem('lastFetchDate') || null;
 let activeIndex = 0; // The row currently being edited
 let activeValueString = '1'; // The raw string typed by user for the active row
 let shouldResetValue = true; // True if the next keypress should override the value
+let isEditingMode = false; // Whether delete buttons are shown
 
 // Elements
 const currencyList = document.getElementById('currencyList');
 const addCurrencyBtn = document.getElementById('addCurrencyBtn');
+const toggleDeleteBtn = document.getElementById('toggleDeleteBtn');
 const lastUpdatedEl = document.getElementById('lastUpdated');
 const keypadBtns = document.querySelectorAll('.keypad-btn');
+const currencyModal = document.getElementById('currencyModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const currencySearch = document.getElementById('currencySearch');
+const modalCurrencyList = document.getElementById('modalCurrencyList');
+
+let selectingForIndex = -1;
+let currencyNamesFormatter;
+try {
+    currencyNamesFormatter = new Intl.DisplayNames(['en'], { type: 'currency' });
+} catch (e) {
+    // Fallback if not supported
+}
+
+function getCurrencySymbol(code) {
+    try {
+        const formatter = new Intl.NumberFormat('en', { style: 'currency', currency: code, maximumFractionDigits: 0 });
+        const parts = formatter.formatToParts(0);
+        const symbolPart = parts.find(part => part.type === 'currency');
+        return symbolPart ? symbolPart.value : code;
+    } catch(e) {
+        return code;
+    }
+}
 
 // Utility: Currency Code to Flag Emoji
 function getFlagEmoji(currencyCode) {
@@ -40,7 +65,6 @@ function getFlagEmoji(currencyCode) {
 // Initialize app
 async function initApp() {
     registerServiceWorker();
-    await fetchRates();
 
     // Ensure EUR is baseline if rates are empty initially
     if(Object.keys(exchangeRates).length === 0) {
@@ -49,6 +73,11 @@ async function initApp() {
 
     renderCurrencies();
     setupEventListeners();
+
+    // Fetch new rates asynchronously without blocking UI rendering
+    fetchRates().then(() => {
+        renderCurrencies();
+    });
 }
 
 // Register Service Worker
@@ -101,8 +130,64 @@ function updateLastUpdatedText(isOffline = false) {
     }
 }
 
+// Modal logic
+function openCurrencyModal(index) {
+    selectingForIndex = index;
+    currencySearch.value = '';
+    renderModalCurrencies('');
+    currencyModal.classList.remove('hidden');
+    currencyModal.classList.add('flex');
+}
+
+function renderModalCurrencies(searchQuery) {
+    modalCurrencyList.innerHTML = '';
+    const query = searchQuery.toLowerCase();
+
+    const availableCurrencies = Object.keys(exchangeRates).sort();
+
+    availableCurrencies.forEach(code => {
+        let name = code;
+        if (currencyNamesFormatter) {
+            try {
+                name = currencyNamesFormatter.of(code);
+            } catch(e) {}
+        }
+
+        const searchString = `${code} ${name}`.toLowerCase();
+        if (query && !searchString.includes(query)) return;
+
+        const row = document.createElement('div');
+        row.className = "flex items-center gap-4 p-3 hover:bg-gray-100 rounded-xl cursor-pointer transition-colors";
+        row.innerHTML = `
+            <div class="text-3xl">${getFlagEmoji(code)}</div>
+            <div class="flex flex-col">
+                <span class="font-bold text-gray-800">${code}</span>
+                <span class="text-sm text-gray-500">${name}</span>
+            </div>
+        `;
+        row.addEventListener('click', () => {
+            currencies[selectingForIndex] = code;
+            saveState();
+            renderCurrencies();
+            currencyModal.classList.add('hidden');
+            currencyModal.classList.remove('flex');
+        });
+
+        modalCurrencyList.appendChild(row);
+    });
+}
+
 // Setup global listeners
 function setupEventListeners() {
+    closeModalBtn.addEventListener('click', () => {
+        currencyModal.classList.add('hidden');
+        currencyModal.classList.remove('flex');
+    });
+
+    currencySearch.addEventListener('input', (e) => {
+        renderModalCurrencies(e.target.value);
+    });
+
     addCurrencyBtn.addEventListener('click', () => {
         // Add USD or first available currency not in list
         const available = Object.keys(exchangeRates).filter(c => !currencies.includes(c));
@@ -110,6 +195,20 @@ function setupEventListeners() {
 
         currencies.push(toAdd);
         saveState();
+        renderCurrencies();
+    });
+
+    toggleDeleteBtn.addEventListener('click', () => {
+        isEditingMode = !isEditingMode;
+        if (isEditingMode) {
+            toggleDeleteBtn.classList.replace('bg-gray-200', 'bg-red-100');
+            toggleDeleteBtn.classList.replace('hover:bg-gray-300', 'hover:bg-red-200');
+            toggleDeleteBtn.classList.replace('text-gray-700', 'text-red-700');
+        } else {
+            toggleDeleteBtn.classList.replace('bg-red-100', 'bg-gray-200');
+            toggleDeleteBtn.classList.replace('hover:bg-red-200', 'hover:bg-gray-300');
+            toggleDeleteBtn.classList.replace('text-red-700', 'text-gray-700');
+        }
         renderCurrencies();
     });
 
@@ -190,7 +289,7 @@ function renderCurrencies() {
         const displayValue = calculateValue(index);
 
         const row = document.createElement('div');
-        row.className = `flex items-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+        row.className = `flex items-center gap-2 p-2 rounded-xl border-2 transition-all cursor-pointer ${
             isEditing
                 ? 'bg-blue-50 border-blue-500 shadow-md transform scale-[1.02]'
                 : 'bg-white border-transparent shadow-sm hover:bg-gray-50'
@@ -198,8 +297,8 @@ function renderCurrencies() {
 
         // Select logic
         row.addEventListener('click', (e) => {
-            // Ignore click if clicking select or delete
-            if (e.target.tagName === 'SELECT' || e.target.closest('.delete-btn')) return;
+            // Ignore click if clicking delete or currency selector
+            if (e.target.closest('.delete-btn') || e.target.closest('.currency-selector')) return;
 
             if (activeIndex !== index) {
                 activeIndex = index;
@@ -209,39 +308,32 @@ function renderCurrencies() {
             }
         });
 
-        // Delete button (only if more than 2 currencies)
+        // Delete button (only if more than 1 currency and editing mode is active)
         let deleteHtml = '';
-        if (currencies.length > 2) {
+        if (isEditingMode && currencies.length > 1) {
             deleteHtml = `
-                <button class="delete-btn text-gray-400 hover:text-red-500 p-2 mr-4 rounded-full transition-colors" data-index="${index}">
+                <button class="delete-btn text-gray-400 hover:text-red-500 p-2 mr-1 rounded-full transition-colors" data-index="${index}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             `;
-        } else {
-             deleteHtml = `<div class="w-9 mr-4"></div>`; // spacer
+        } else if (isEditingMode) {
+             deleteHtml = `<div class="w-9 mr-1"></div>`; // spacer to keep aligned if only 1 left
         }
-
-        // Dropdown options
-        const optionsHtml = availableCurrencies.map(c =>
-            `<option value="${c}" ${c === currency ? 'selected' : ''}>${c}</option>`
-        ).join('');
 
         row.innerHTML = `
             ${deleteHtml}
-            <div class="flex flex-col relative">
-                <div class="text-3xl mb-1">${getFlagEmoji(currency)}</div>
-                <select class="appearance-none bg-transparent font-bold text-gray-700 text-sm focus:outline-none cursor-pointer pr-4" data-index="${index}">
-                    ${optionsHtml}
-                </select>
-                <!-- chevron for select -->
-                <div class="pointer-events-none absolute bottom-0.5 right-0 flex items-center text-gray-400">
-                     <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <div class="flex flex-col relative items-center justify-center cursor-pointer currency-selector hover:bg-gray-200/50 p-2 rounded-lg" data-index="${index}">
+                <div class="text-2xl mb-1">${getFlagEmoji(currency)}</div>
+                <div class="font-bold text-gray-700 text-sm flex items-center gap-1">
+                    ${currency}
+                    <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
             </div>
 
             <div class="flex-grow text-right overflow-hidden flex flex-col justify-center">
-                <div class="text-3xl font-bold tracking-tight text-gray-800 truncate w-full no-keyboard">
-                    ${displayValue}${isEditing ? '<span class="animate-pulse text-blue-500">|</span>' : ''}
+                <div class="text-2xl font-bold tracking-tight text-gray-800 truncate w-full no-keyboard flex items-center justify-end gap-1">
+                    <span>${displayValue}${isEditing ? '<span class="animate-pulse text-blue-500">|</span>' : ''}</span>
+                    <span class="text-gray-500 text-xl font-normal ml-1">${getCurrencySymbol(currency)}</span>
                 </div>
             </div>
         `;
@@ -250,12 +342,10 @@ function renderCurrencies() {
     });
 
     // Attach listeners for newly created elements
-    document.querySelectorAll('select').forEach(select => {
-        select.addEventListener('change', (e) => {
-            const index = parseInt(e.target.dataset.index);
-            currencies[index] = e.target.value;
-            saveState();
-            renderCurrencies();
+    document.querySelectorAll('.currency-selector').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(e.currentTarget.dataset.index);
+            openCurrencyModal(index);
         });
     });
 
