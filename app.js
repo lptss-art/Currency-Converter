@@ -1,5 +1,5 @@
 // State variables
-let currencies = JSON.parse(localStorage.getItem('userCurrencies')) || ['EUR', 'TWD'];
+let currencies = JSON.parse(localStorage.getItem('userCurrencies')) || ['EUR', 'USD', 'GBP', 'JPY', 'TWD'];
 let exchangeRates = JSON.parse(localStorage.getItem('exchangeRates')) || {};
 let lastFetchDate = localStorage.getItem('lastFetchDate') || null;
 
@@ -73,11 +73,43 @@ async function initApp() {
 
     renderCurrencies();
     setupEventListeners();
+    setupSortable();
 
     // Fetch new rates asynchronously without blocking UI rendering
     fetchRates().then(() => {
         renderCurrencies();
     });
+}
+
+function setupSortable() {
+    if (typeof Sortable !== 'undefined') {
+        new Sortable(currencyList, {
+            delay: 300,
+            delayOnTouchOnly: true,
+            animation: 150,
+            onEnd: function (evt) {
+                const oldIndex = evt.oldIndex;
+                const newIndex = evt.newIndex;
+                if (oldIndex === newIndex) return;
+
+                // Move in array
+                const movedCurrency = currencies.splice(oldIndex, 1)[0];
+                currencies.splice(newIndex, 0, movedCurrency);
+
+                // Update active index tracking so editing stays on the right item
+                if (activeIndex === oldIndex) {
+                    activeIndex = newIndex;
+                } else if (oldIndex < activeIndex && newIndex >= activeIndex) {
+                    activeIndex--;
+                } else if (oldIndex > activeIndex && newIndex <= activeIndex) {
+                    activeIndex++;
+                }
+
+                saveState();
+                renderCurrencies();
+            }
+        });
+    }
 }
 
 // Register Service Worker
@@ -289,7 +321,7 @@ function renderCurrencies() {
         const displayValue = calculateValue(index);
 
         const row = document.createElement('div');
-        row.className = `flex items-center gap-2 p-2 rounded-xl border-2 transition-all cursor-pointer ${
+        row.className = `flex items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all cursor-pointer ${
             isEditing
                 ? 'bg-blue-50 border-blue-500 shadow-md transform scale-[1.02]'
                 : 'bg-white border-transparent shadow-sm hover:bg-gray-50'
@@ -322,18 +354,18 @@ function renderCurrencies() {
 
         row.innerHTML = `
             ${deleteHtml}
-            <div class="flex flex-col relative items-center justify-center cursor-pointer currency-selector hover:bg-gray-200/50 p-2 rounded-lg" data-index="${index}">
-                <div class="text-2xl mb-1">${getFlagEmoji(currency)}</div>
-                <div class="font-bold text-gray-700 text-sm flex items-center gap-1">
+            <div class="flex flex-col relative items-center justify-center cursor-pointer currency-selector hover:bg-gray-200/50 p-1.5 rounded-lg" data-index="${index}">
+                <div class="text-xl mb-0.5">${getFlagEmoji(currency)}</div>
+                <div class="font-bold text-gray-700 text-xs flex items-center gap-1">
                     ${currency}
                     <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
             </div>
 
             <div class="flex-grow text-right overflow-hidden flex flex-col justify-center">
-                <div class="text-2xl font-bold tracking-tight text-gray-800 truncate w-full no-keyboard flex items-center justify-end gap-1">
+                <div class="text-xl font-bold tracking-tight text-gray-800 truncate w-full no-keyboard flex items-center justify-end gap-1">
                     <span>${displayValue}${isEditing ? '<span class="animate-pulse text-blue-500">|</span>' : ''}</span>
-                    <span class="text-gray-500 text-xl font-normal ml-1">${getCurrencySymbol(currency)}</span>
+                    <span class="text-gray-500 text-lg font-normal ml-1">${getCurrencySymbol(currency)}</span>
                 </div>
             </div>
         `;
