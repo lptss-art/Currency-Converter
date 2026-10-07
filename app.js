@@ -388,14 +388,24 @@ function openCurrencyModal(index) {
     selectingForIndex = index;
     currencySearch.value = '';
     if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+    modalCurrencyList.scrollTop = 0;
     renderModalCurrencies('');
     currencyModal.classList.remove('hidden');
     currencyModal.classList.add('flex');
-    setTimeout(() => currencySearch.focus(), 50);
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => currencySearch.focus(), 80);
+}
+
+function closeCurrencyModal() {
+    currencyModal.classList.add('hidden');
+    currencyModal.classList.remove('flex');
+    document.body.style.overflow = '';
+    currencySearch.blur();
 }
 
 function renderModalCurrencies(searchQuery) {
     modalCurrencyList.innerHTML = '';
+    modalCurrencyList.scrollTop = 0;
     const rawTokens = normalizeSearch(searchQuery).split(/\s+/).filter(Boolean);
     const availableCurrencies = Array.from(new Set([...Object.keys(exchangeRates), ...ALL_SUPPORTED_CURRENCIES])).sort();
 
@@ -435,8 +445,7 @@ function renderModalCurrencies(searchQuery) {
             currencies[selectingForIndex] = code;
             saveState();
             renderCurrencies();
-            currencyModal.classList.add('hidden');
-            currencyModal.classList.remove('flex');
+            closeCurrencyModal();
         });
 
         fragment.appendChild(row);
@@ -454,25 +463,41 @@ function renderModalCurrencies(searchQuery) {
 
 // Setup Event Listeners
 function setupEventListeners() {
-    closeModalBtn.addEventListener('click', () => {
-        currencyModal.classList.add('hidden');
-        currencyModal.classList.remove('flex');
+    closeModalBtn.addEventListener('click', closeCurrencyModal);
+
+    // Clicking on backdrop closes modal
+    currencyModal.addEventListener('click', (e) => {
+        if (e.target === currencyModal) {
+            closeCurrencyModal();
+        }
     });
 
+    // Dismiss virtual keyboard smoothly when scrolling the list on touch devices
+    modalCurrencyList.addEventListener('touchstart', () => {
+        if (document.activeElement === currencySearch) {
+            currencySearch.blur();
+        }
+    }, { passive: true });
+
+    let searchRaf = null;
     currencySearch.addEventListener('input', (e) => {
         const val = e.target.value;
         if (clearSearchBtn) {
             clearSearchBtn.classList.toggle('hidden', val.length === 0);
         }
-        renderModalCurrencies(val);
+        if (searchRaf) cancelAnimationFrame(searchRaf);
+        searchRaf = requestAnimationFrame(() => {
+            renderModalCurrencies(val);
+        });
     });
 
     if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', () => {
+        clearSearchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             currencySearch.value = '';
             clearSearchBtn.classList.add('hidden');
-            currencySearch.focus();
             renderModalCurrencies('');
+            currencySearch.focus();
         });
     }
 

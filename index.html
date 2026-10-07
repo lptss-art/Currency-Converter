@@ -42,20 +42,20 @@
 
     <!-- Currency Selection Modal -->
     <div id="currencyModal" class="hidden fixed inset-0 bg-black/50 z-50 flex-col pb-safe">
-        <div class="mt-auto bg-white rounded-t-3xl h-[85vh] flex flex-col">
-            <div class="p-4 border-b flex items-center justify-between">
+        <div id="modalSheet" class="mt-auto bg-white rounded-t-3xl max-h-[88dvh] h-[85dvh] flex flex-col shadow-2xl">
+            <div class="p-4 border-b flex items-center justify-between flex-shrink-0">
                 <h2 class="text-xl font-bold text-gray-900">Choisir une devise</h2>
                 <button id="closeModalBtn" aria-label="Fermer" class="p-2 text-gray-400 hover:text-gray-800 cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div class="p-4 border-b relative flex items-center">
-                <input type="text" id="currencySearch" placeholder="Rechercher une devise..." autocomplete="off" class="w-full bg-gray-100 border-none rounded-xl p-3 pr-10 focus:ring-2 outline-none text-lg text-gray-900">
+            <div class="p-4 border-b relative flex items-center flex-shrink-0">
+                <input type="text" id="currencySearch" placeholder="Rechercher une devise ou un pays..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-gray-100 border-none rounded-xl p-3 pr-10 focus:ring-2 outline-none text-base text-gray-900">
                 <button id="clearSearchBtn" aria-label="Effacer la recherche" class="hidden absolute right-7 text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div id="modalCurrencyList" class="flex-grow overflow-y-auto p-2 flex flex-col gap-1 pb-safe">
+            <div id="modalCurrencyList" class="flex-grow overflow-y-auto p-2 flex flex-col gap-1 pb-safe overscroll-contain">
                 <!-- Currency options will be injected here -->
             </div>
         </div>

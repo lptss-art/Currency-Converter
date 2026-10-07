@@ -209,7 +209,12 @@ body {
 
 /* Overflow & Transitions */
 .overflow-hidden { overflow: hidden; }
-.overflow-y-auto { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.overflow-y-auto { 
+  overflow-y: auto; 
+  -webkit-overflow-scrolling: touch; 
+  overscroll-behavior: contain; 
+}
+.overscroll-contain { overscroll-behavior: contain; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .cursor-pointer { cursor: pointer; }
