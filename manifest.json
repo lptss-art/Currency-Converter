@@ -2,7 +2,7 @@
   "name": "Universal Currency Converter",
   "short_name": "Converter",
   "description": "Convertisseur de devises universel, minimaliste, ultra-rapide et 100% hors-ligne.",
-  "start_url": "index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
