@@ -1,44 +1,46 @@
-const CACHE_NAME = 'currency-converter-v6';
+const CACHE_NAME = 'currency-converter-v7';
 const ASSETS_TO_CACHE = [
   './',
-  './index.html',
-  './style.css',
-  './app.js',
-  './sortable.min.js',
-  './manifest.json',
-  './icon-192x192.png',
-  './icon-512x512.png',
-  './icon-maskable-512x512.png'
+  'index.html',
+  'style.css',
+  'app.js',
+  'sortable.min.js',
+  'manifest.json',
+  'icon-192x192.png',
+  'icon-512x512.png',
+  'icon-maskable-512x512.png'
 ];
 
-// Install event: pre-cache all core assets
+// Install event: cache all assets safely with Promise.allSettled
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
-  self.skipWaiting();
-});
-
-// Activate event: clean up outdated caches immediately
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
+    caches.open(CACHE_NAME).then(async cache => {
+      await Promise.allSettled(
+        ASSETS_TO_CACHE.map(async url => {
+          try {
+            await cache.add(url);
+          } catch (e) {
+            console.warn('Cache add warning for:', url, e);
           }
         })
       );
     })
   );
+  self.skipWaiting();
+});
+
+// Activate event: clean up all old cache versions
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+    ))
+  );
   self.clients.claim();
 });
 
 // Fetch event:
-// Bulletproof PWA Strategy for standalone apps (iOS/Android WebAPK/Chrome)
+// Bulletproof offline-first engine that never returns undefined to event.respondWith
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
@@ -47,52 +49,51 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 1. Navigation requests (launching PWA from home screen or browser navigation)
-  // Always serve index.html instantly from cache
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      caches.match('./index.html')
-        .then(cachedIndex => {
-          if (cachedIndex) return cachedIndex;
-          return caches.match('./')
-            .then(cachedRoot => cachedRoot || fetch(event.request));
-        })
-        .catch(() => caches.match('./index.html'))
-    );
-    return;
-  }
-
-  // 2. Static assets: match with ignoreSearch (handles query params like ?v=...)
   event.respondWith(
-    caches.match(event.request, { ignoreSearch: true }).then(cachedResponse => {
-      if (cachedResponse) {
-        // Background revalidation
-        fetch(event.request)
-          .then(networkResponse => {
-            if (networkResponse && networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, networkResponse);
-              });
-            }
-          })
-          .catch(() => {});
-
-        return cachedResponse;
+    (async () => {
+      // 1. Try matching the exact request in cache
+      const cached = await caches.match(event.request, { ignoreSearch: true });
+      if (cached) {
+        // Fetch new version in background (non-blocking)
+        fetch(event.request).then(resp => {
+          if (resp && resp.status === 200) {
+            caches.open(CACHE_NAME).then(c => c.put(event.request, resp));
+          }
+        }).catch(() => {});
+        return cached;
       }
 
-      // If not in cache, fetch from network and cache
-      return fetch(event.request).then(networkResponse => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
+      // 2. If it is a navigation request (app launch or page visit), serve cached index.html immediately
+      if (event.request.mode === 'navigate') {
+        const cachedHtml = await caches.match('index.html', { ignoreSearch: true })
+                        || await caches.match('./index.html', { ignoreSearch: true })
+                        || await caches.match('./', { ignoreSearch: true });
+        if (cachedHtml) return cachedHtml;
+      }
+
+      // 3. Try network request
+      try {
+        const netResp = await fetch(event.request);
+        if (netResp && netResp.status === 200) {
+          const clone = netResp.clone();
+          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
         }
-        return networkResponse;
-      }).catch(() => {
-        // Fallback for html
-        return caches.match('./index.html');
-      });
-    })
+        return netResp;
+      } catch (err) {
+        // 4. If network fails and it's a navigation request, guaranteed fallback to cached index.html
+        if (event.request.mode === 'navigate') {
+          const fallback = await caches.match('index.html', { ignoreSearch: true })
+                         || await caches.match('./index.html', { ignoreSearch: true })
+                         || await caches.match('./', { ignoreSearch: true });
+          if (fallback) return fallback;
+        }
+
+        // Return a valid Response instead of undefined to prevent Chrome 'ERR_FAILED'
+        return new Response('Mode hors-ligne', { 
+          status: 200, 
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+        });
+      }
+    })()
   );
 });
