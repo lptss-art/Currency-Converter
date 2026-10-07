@@ -17,8 +17,31 @@ const DEFAULT_RATES = {
     CHF: 0.96,
     CAD: 1.48,
     AUD: 1.66,
-    TWD: 34.8
+    TWD: 34.8,
+    TND: 3.37,
+    MAD: 10.75,
+    DZD: 144.5
 };
+
+// Complete global currency list so all currencies are ALWAYS searchable even before API loads
+const ALL_SUPPORTED_CURRENCIES = [
+    'AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG', 'AZN',
+    'BAM', 'BBD', 'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BRL',
+    'BSD', 'BTN', 'BWP', 'BYN', 'BZD', 'CAD', 'CDF', 'CHF', 'CLP', 'CNY',
+    'COP', 'CRC', 'CUP', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP', 'DZD', 'EGP',
+    'ERN', 'ETB', 'EUR', 'FJD', 'FKP', 'GBP', 'GEL', 'GHS', 'GIP', 'GMD',
+    'GNF', 'GTQ', 'GYD', 'HKD', 'HNL', 'HRK', 'HTG', 'HUF', 'IDR', 'ILS',
+    'INR', 'IQD', 'IRR', 'ISK', 'JMD', 'JOD', 'JPY', 'KES', 'KGS', 'KHR',
+    'KMF', 'KRW', 'KWD', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD', 'LSL',
+    'LYD', 'MAD', 'MDL', 'MGA', 'MKD', 'MMK', 'MNT', 'MOP', 'MRU', 'MUR',
+    'MVR', 'MWK', 'MXN', 'MYR', 'MZN', 'NAD', 'NGN', 'NIO', 'NOK', 'NPR',
+    'NZD', 'OMR', 'PAB', 'PEN', 'PGK', 'PHP', 'PKR', 'PLN', 'PYG', 'QAR',
+    'RON', 'RSD', 'RUB', 'RWF', 'SAR', 'SBD', 'SCR', 'SDG', 'SEK', 'SGD',
+    'SHP', 'SLE', 'SLL', 'SOS', 'SRD', 'SSP', 'STN', 'SYP', 'SZL', 'THB',
+    'TJS', 'TMT', 'TND', 'TOP', 'TRY', 'TTD', 'TVD', 'TWD', 'TZS', 'UAH',
+    'UGX', 'USD', 'UYU', 'UZS', 'VES', 'VND', 'VUV', 'WST', 'XAF', 'XCD',
+    'XOF', 'XPF', 'YER', 'ZAR', 'ZMW', 'ZWL', 'BTC', 'ETH', 'XAU', 'XAG'
+];
 
 // State variables
 let currencies = safeGetStorage('userCurrencies', ['EUR', 'USD', 'GBP', 'JPY', 'TWD']);
@@ -269,13 +292,25 @@ function setupSortable() {
     }
 }
 
-// Register Service Worker
+// Register Service Worker with automatic update detection
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch(err => {
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                // Check for updates on every page load
+                reg.update();
+            }).catch(err => {
                 console.warn('ServiceWorker registration error:', err);
             });
+        });
+
+        // Auto-refresh when new Service Worker takes control
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                window.location.reload();
+            }
         });
     }
 }
@@ -362,7 +397,7 @@ function openCurrencyModal(index) {
 function renderModalCurrencies(searchQuery) {
     modalCurrencyList.innerHTML = '';
     const rawTokens = normalizeSearch(searchQuery).split(/\s+/).filter(Boolean);
-    const availableCurrencies = Object.keys(exchangeRates).sort();
+    const availableCurrencies = Array.from(new Set([...Object.keys(exchangeRates), ...ALL_SUPPORTED_CURRENCIES])).sort();
 
     const fragment = document.createDocumentFragment();
     let matchCount = 0;
