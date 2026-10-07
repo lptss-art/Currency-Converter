@@ -292,25 +292,15 @@ function setupSortable() {
     }
 }
 
-// Register Service Worker with automatic update detection
+// Register Service Worker
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').then(reg => {
-                // Check for updates on every page load
                 reg.update();
             }).catch(err => {
                 console.warn('ServiceWorker registration error:', err);
             });
-        });
-
-        // Auto-refresh when new Service Worker takes control
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!refreshing) {
-                refreshing = true;
-                window.location.reload();
-            }
         });
     }
 }

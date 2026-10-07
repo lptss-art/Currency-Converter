@@ -1,4 +1,4 @@
-const CACHE_NAME = 'currency-converter-v5';
+const CACHE_NAME = 'currency-converter-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -21,7 +21,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Activate event: clean up outdated caches
+// Activate event: clean up outdated caches immediately
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -38,21 +38,35 @@ self.addEventListener('activate', event => {
 });
 
 // Fetch event:
-// Strategy: Cache-First with Stale-While-Revalidate for app assets.
-// This guarantees INSTANT (0ms) launch, even with poor or flaky Internet ("Lie-Fi").
+// Bulletproof PWA Strategy for standalone apps (iOS/Android WebAPK/Chrome)
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
-  // Never cache or intercept live exchange rate API calls via SW (handled in app.js with localStorage & timeout)
+  // Never intercept or cache the live exchange rate API
   if (event.request.url.includes('open.er-api.com')) {
     return;
   }
 
+  // 1. Navigation requests (launching PWA from home screen or browser navigation)
+  // Always serve index.html instantly from cache
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match('./index.html')
+        .then(cachedIndex => {
+          if (cachedIndex) return cachedIndex;
+          return caches.match('./')
+            .then(cachedRoot => cachedRoot || fetch(event.request));
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // 2. Static assets: match with ignoreSearch (handles query params like ?v=...)
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      // 1. If in cache, return immediately (zero wait time for user)
+    caches.match(event.request, { ignoreSearch: true }).then(cachedResponse => {
       if (cachedResponse) {
-        // Fetch new version in background to update cache for next launch (non-blocking)
+        // Background revalidation
         fetch(event.request)
           .then(networkResponse => {
             if (networkResponse && networkResponse.status === 200) {
@@ -61,28 +75,24 @@ self.addEventListener('fetch', event => {
               });
             }
           })
-          .catch(() => {
-            // Ignore network errors in background update
-          });
+          .catch(() => {});
 
         return cachedResponse;
       }
 
-      // 2. If not in cache (very first visit without install), fetch from network
-      return fetch(event.request)
-        .then(networkResponse => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Fallback if network totally fails
-          return caches.match('./index.html');
-        });
+      // If not in cache, fetch from network and cache
+      return fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Fallback for html
+        return caches.match('./index.html');
+      });
     })
   );
 });
