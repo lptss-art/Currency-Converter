@@ -454,7 +454,7 @@ function updateDisplayValues() {
         const displayValue = calculateValue(index);
         const isEditing = index === activeIndex;
 
-        valSpan.innerHTML = `${displayValue}${isEditing ? '<span class="animate-pulse text-blue-500">|</span>' : ''}`;
+        valSpan.innerHTML = `${displayValue}${isEditing ? '<span class="animate-pulse text-blue-600">|</span>' : ''}`;
     });
 }
 
@@ -468,10 +468,10 @@ function renderCurrencies() {
         const displayValue = calculateValue(index);
 
         const row = document.createElement('div');
-        row.className = `flex items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all cursor-pointer ${
+        row.className = `flex items-center gap-1.5 p-2 rounded-xl border-2 transition-all cursor-pointer ${
             isEditing
-                ? 'bg-blue-50 border-blue-500 shadow-md scale-[1.02]'
-                : 'bg-white border-transparent shadow-sm hover:bg-gray-50'
+                ? 'bg-gradient-active border-blue-500 shadow-md scale-[1.01]'
+                : 'card-inactive border-gray-100 hover:border-gray-200'
         }`;
 
         row.addEventListener('click', (e) => {
@@ -509,9 +509,9 @@ function renderCurrencies() {
             </div>
 
             <div class="flex-grow text-right overflow-hidden flex flex-col justify-center">
-                <div class="text-xl font-bold tracking-tight text-gray-800 truncate w-full no-keyboard flex items-center justify-end gap-1">
-                    <span id="currency-val-${index}">${displayValue}${isEditing ? '<span class="animate-pulse text-blue-500">|</span>' : ''}</span>
-                    <span class="text-gray-500 text-lg font-normal ml-1">${getCurrencySymbol(currency)}</span>
+                <div class="text-xl font-bold tracking-tight text-gray-900 truncate w-full no-keyboard flex items-center justify-end gap-1">
+                    <span id="currency-val-${index}">${displayValue}${isEditing ? '<span class="animate-pulse text-blue-600">|</span>' : ''}</span>
+                    <span class="text-emerald-600 text-lg font-semibold ml-1">${getCurrencySymbol(currency)}</span>
                 </div>
             </div>
         `;
