@@ -92,14 +92,15 @@ body {
 .bg-black\/50 { background-color: rgba(15, 23, 42, 0.55); }
 
 /* Theme Accents (Reflecting the Icon) */
-.btn-gradient-theme {
-  background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
-  box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.35);
+.btn-primary-theme, .btn-gradient-theme {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 6px -1px rgba(37, 99, 235, 0.35);
   transition: all 0.15s ease;
 }
-.btn-gradient-theme:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #059669 100%);
-  box-shadow: 0 4px 14px -1px rgba(37, 99, 235, 0.45);
+.btn-primary-theme:hover, .btn-gradient-theme:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 4px 10px -1px rgba(37, 99, 235, 0.45);
 }
 
 .bg-gradient-active {

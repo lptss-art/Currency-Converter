@@ -195,13 +195,26 @@ async function fetchRates(force = false) {
     }
 }
 
+function formatExchangeDate(isoDateStr) {
+    if (!isoDateStr) return '';
+    try {
+        const parts = isoDateStr.split('-');
+        if (parts.length === 3) {
+            const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(date);
+        }
+        return isoDateStr;
+    } catch (e) {
+        return isoDateStr;
+    }
+}
+
 function updateLastUpdatedText(isOffline = false) {
     if (lastFetchDate) {
-        const dateParts = lastFetchDate.split('-');
-        const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}` : lastFetchDate;
+        const formattedDate = formatExchangeDate(lastFetchDate);
         lastUpdatedEl.textContent = isOffline
-            ? `Hors-ligne (taux ${formattedDate})`
-            : `Taux : ${formattedDate}`;
+            ? `Hors-ligne • Taux du ${formattedDate}`
+            : `Taux du ${formattedDate}`;
     } else {
         lastUpdatedEl.textContent = 'Taux enregistrés';
     }
