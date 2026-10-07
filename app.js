@@ -47,11 +47,139 @@ const clearSearchBtn = document.getElementById('clearSearchBtn');
 const modalCurrencyList = document.getElementById('modalCurrencyList');
 
 let selectingForIndex = -1;
-let currencyNamesFormatter;
+
+// Multi-locale formatters for universal search (French & English)
+let dnCurrFr, dnCurrEn, dnRegFr, dnRegEn;
 try {
-    currencyNamesFormatter = new Intl.DisplayNames(['fr'], { type: 'currency' });
-} catch (e) {
-    // Fallback if not supported
+    dnCurrFr = new Intl.DisplayNames(['fr'], { type: 'currency' });
+    dnCurrEn = new Intl.DisplayNames(['en'], { type: 'currency' });
+    dnRegFr = new Intl.DisplayNames(['fr'], { type: 'region' });
+    dnRegEn = new Intl.DisplayNames(['en'], { type: 'region' });
+} catch (e) {}
+
+// Normalize search text (removes accents, umlauts, punctuation and lowercases)
+function normalizeSearch(str) {
+    if (!str) return '';
+    return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, ' ')
+        .trim();
+}
+
+// Special dictionary for common aliases, capitals, international names and nicknames
+const CURRENCY_ALIASES = {
+    EUR: ['europe', 'france', 'allemagne', 'germany', 'deutschland', 'espagne', 'spain', 'espana', 'italie', 'italy', 'italia', 'portugal', 'belgique', 'belgium', 'pays-bas', 'netherlands', 'hollande', 'grece', 'greece', 'irlande', 'ireland', 'autriche', 'austria', 'finlande', 'finland', 'ue', 'eu', 'eurozone'],
+    USD: ['usa', 'united states', 'etats-unis', 'etats unis', 'amerique', 'america', 'us', 'dollar', 'new york', 'washington'],
+    GBP: ['uk', 'united kingdom', 'royaume-uni', 'royaume uni', 'angleterre', 'england', 'grande-bretagne', 'great britain', 'londres', 'london', 'livre sterling', 'pound', 'ecosse', 'scotland'],
+    JPY: ['japan', 'japon', 'nippon', 'tokyo', 'yen', 'osaka'],
+    CHF: ['switzerland', 'suisse', 'schweiz', 'svizzera', 'geneve', 'zurich', 'franc suisse'],
+    CAD: ['canada', 'dollar canadien', 'canadian dollar', 'montreal', 'toronto', 'quebec', 'ottawa'],
+    AUD: ['australia', 'australie', 'dollar australien', 'sydney', 'melbourne', 'canberra'],
+    CNY: ['china', 'chine', 'yuan', 'renminbi', 'pekin', 'beijing', 'shanghai'],
+    INR: ['india', 'inde', 'rupee', 'roupie', 'mumbai', 'delhi', 'new delhi'],
+    BRL: ['brazil', 'bresil', 'brasil', 'real', 'rio', 'sao paulo'],
+    MXN: ['mexico', 'mexique', 'peso mexicain', 'cancun'],
+    KRW: ['korea', 'coree', 'south korea', 'coree du sud', 'seoul', 'won'],
+    THB: ['thailand', 'thailande', 'siam', 'bangkok', 'baht', 'phuket'],
+    AED: ['uae', 'united arab emirates', 'emirats arabes unis', 'dubai', 'abu dhabi', 'dirham'],
+    MAD: ['morocco', 'maroc', 'casablanca', 'marrakech', 'rabat', 'dirham marocain'],
+    TND: ['tunisia', 'tunisie', 'tunis', 'dinar tunisien'],
+    DZD: ['algeria', 'algerie', 'alger', 'dinar algerien'],
+    EGP: ['egypt', 'egypte', 'le caire', 'cairo', 'livre egyptienne'],
+    SGD: ['singapore', 'singapour'],
+    HKD: ['hong kong', 'hongkong'],
+    TWD: ['taiwan', 'taipei', 'new taiwan dollar'],
+    SEK: ['sweden', 'suede', 'sverige', 'stockholm', 'couronne suedoise', 'krona'],
+    NOK: ['norway', 'norvege', 'norge', 'oslo', 'couronne norvegienne', 'krone'],
+    DKK: ['denmark', 'danemark', 'danmark', 'copenhague', 'copenhagen', 'couronne danoise'],
+    PLN: ['poland', 'pologne', 'polska', 'varsovie', 'warsaw', 'zloty'],
+    CZK: ['czech', 'tchequie', 'czechia', 'prague', 'koruna', 'republique tcheque'],
+    HUF: ['hungary', 'hongrie', 'budapest', 'forint'],
+    TRY: ['turkey', 'turquie', 'turkiye', 'istanbul', 'ankara', 'lira', 'livre turque'],
+    ILS: ['israel', 'shekel', 'tel aviv', 'jerusalem'],
+    IDR: ['indonesia', 'indonesie', 'bali', 'jakarta', 'rupiah'],
+    MYR: ['malaysia', 'malaisie', 'kuala lumpur', 'ringgit'],
+    PHP: ['philippines', 'manille', 'manila', 'peso philippin'],
+    VND: ['vietnam', 'dong', 'hanoi', 'saigon', 'ho chi minh'],
+    ZAR: ['south africa', 'afrique du sud', 'rand', 'cape town', 'johannesburg'],
+    NZD: ['new zealand', 'nouvelle-zelande', 'auckland', 'kiwi'],
+    ARS: ['argentina', 'argentine', 'buenos aires', 'peso argentin'],
+    CLP: ['chile', 'chili', 'santiago', 'peso chilien'],
+    COP: ['colombia', 'colombie', 'bogota', 'peso colombien'],
+    PEN: ['peru', 'perou', 'lima', 'sol'],
+    XOF: ['afrique de l ouest', 'west africa', 'senegal', 'cote d ivoire', 'mali', 'burkina', 'benin', 'togo', 'cfa'],
+    XAF: ['afrique centrale', 'central africa', 'cameroun', 'gabon', 'congo', 'tchad', 'cfa'],
+    XPF: ['polynesie', 'tahiti', 'nouvelle-caledonie', 'cfp'],
+    BTC: ['bitcoin', 'crypto', 'satoshi', 'btc'],
+    ETH: ['ethereum', 'ether', 'crypto', 'eth'],
+    XAU: ['gold', 'or', 'once d or'],
+    XAG: ['silver', 'argent']
+};
+
+const currencyMetadataCache = {};
+
+function getCurrencyMetadata(code) {
+    if (currencyMetadataCache[code]) return currencyMetadataCache[code];
+
+    let nameFr = code;
+    let nameEn = code;
+    let countryFr = '';
+    let countryEn = '';
+
+    if (dnCurrFr) {
+        try { nameFr = dnCurrFr.of(code) || code; } catch(e) {}
+    }
+    if (dnCurrEn) {
+        try { nameEn = dnCurrEn.of(code) || code; } catch(e) {}
+    }
+
+    const countryCode = code.substring(0, 2);
+    if (dnRegFr && countryCode.length === 2) {
+        try { countryFr = dnRegFr.of(countryCode) || ''; } catch(e) {}
+    }
+    if (dnRegEn && countryCode.length === 2) {
+        try { countryEn = dnRegEn.of(countryCode) || ''; } catch(e) {}
+    }
+
+    const aliases = CURRENCY_ALIASES[code] || [];
+
+    // Subtitle label for display in modal
+    let subtitle = '';
+    if (code === 'EUR') {
+        subtitle = 'Zone Euro (France, Allemagne, Espagne...)';
+    } else if (countryFr && countryEn && countryFr !== countryEn) {
+        subtitle = `${countryFr} (${countryEn})`;
+    } else if (countryFr || countryEn) {
+        subtitle = countryFr || countryEn;
+    } else if (aliases.length > 0) {
+        subtitle = aliases.slice(0, 2).map(a => a.charAt(0).toUpperCase() + a.slice(1)).join(', ');
+    }
+
+    // Capitalize first letter of currency name
+    const formattedName = nameFr.charAt(0).toUpperCase() + nameFr.slice(1);
+
+    // Build exhaustive searchable text string
+    const searchTokens = [
+        code,
+        nameFr,
+        nameEn,
+        countryFr,
+        countryEn,
+        ...aliases
+    ].join(' ');
+
+    const metadata = {
+        code,
+        nameFr: formattedName,
+        nameEn,
+        subtitle,
+        searchIndex: normalizeSearch(searchTokens)
+    };
+
+    currencyMetadataCache[code] = metadata;
+    return metadata;
 }
 
 function getCurrencySymbol(code) {
@@ -233,37 +361,40 @@ function openCurrencyModal(index) {
 
 function renderModalCurrencies(searchQuery) {
     modalCurrencyList.innerHTML = '';
-    const query = searchQuery.trim().toLowerCase();
+    const rawTokens = normalizeSearch(searchQuery).split(/\s+/).filter(Boolean);
     const availableCurrencies = Object.keys(exchangeRates).sort();
 
     const fragment = document.createDocumentFragment();
+    let matchCount = 0;
 
     availableCurrencies.forEach(code => {
-        let name = code;
-        if (currencyNamesFormatter) {
-            try {
-                name = currencyNamesFormatter.of(code) || code;
-            } catch(e) {}
+        const meta = getCurrencyMetadata(code);
+
+        // Check if every query word matches in the search index
+        if (rawTokens.length > 0) {
+            const matchesAll = rawTokens.every(token => meta.searchIndex.includes(token));
+            if (!matchesAll) return;
         }
 
-        const searchString = `${code} ${name}`.toLowerCase();
-        if (query && !searchString.includes(query)) return;
-
+        matchCount++;
         const isAlreadyAdded = currencies.includes(code);
 
         const row = document.createElement('div');
         row.className = `flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${
-            isAlreadyAdded ? 'bg-blue-50/70 hover:bg-blue-100' : 'hover:bg-gray-100'
+            isAlreadyAdded ? 'bg-blue-50/80 hover:bg-blue-100/90' : 'hover:bg-gray-100'
         }`;
         row.innerHTML = `
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3.5">
                 <div class="text-3xl">${getFlagEmoji(code)}</div>
                 <div class="flex flex-col">
-                    <span class="font-bold text-gray-800">${code}</span>
-                    <span class="text-sm text-gray-500">${name}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-gray-900">${code}</span>
+                        <span class="text-sm font-medium text-gray-700">${meta.nameFr}</span>
+                    </div>
+                    ${meta.subtitle ? `<span class="text-xs text-gray-400 mt-0.5">${meta.subtitle}</span>` : ''}
                 </div>
             </div>
-            ${isAlreadyAdded ? '<span class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Actif</span>' : ''}
+            ${isAlreadyAdded ? '<span class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Actif</span>' : ''}
         `;
         row.addEventListener('click', () => {
             currencies[selectingForIndex] = code;
@@ -275,6 +406,13 @@ function renderModalCurrencies(searchQuery) {
 
         fragment.appendChild(row);
     });
+
+    if (matchCount === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'text-center py-8 text-gray-400 text-sm';
+        emptyMsg.textContent = `Aucune devise trouvée pour « ${searchQuery} »`;
+        fragment.appendChild(emptyMsg);
+    }
 
     modalCurrencyList.appendChild(fragment);
 }
