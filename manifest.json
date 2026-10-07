@@ -1,23 +1,32 @@
 {
-  "name": "Currency Converter PWA",
+  "name": "Universal Currency Converter",
   "short_name": "Converter",
-  "description": "Minimalist offline-first currency converter.",
-  "start_url": ".",
+  "description": "Convertisseur de devises universel, minimaliste, ultra-rapide et 100% hors-ligne.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "background_color": "#f9fafb",
   "theme_color": "#3b82f6",
+  "lang": "fr",
+  "categories": ["finance", "utilities", "travel"],
   "icons": [
     {
       "src": "icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

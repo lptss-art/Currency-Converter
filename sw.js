@@ -1,25 +1,27 @@
-const CACHE_NAME = 'currency-converter-v1';
+const CACHE_NAME = 'currency-converter-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './style.css',
   './app.js',
-  './manifest.json'
+  './sortable.min.js',
+  './manifest.json',
+  './icon-192x192.png',
+  './icon-512x512.png',
+  './icon-maskable-512x512.png'
 ];
 
-// Install event: cache static assets
+// Install event: pre-cache all core assets
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(ASSETS_TO_CACHE);
-      })
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
   );
-  // Force the waiting service worker to become the active service worker.
   self.skipWaiting();
 });
 
-// Activate event: clean up old caches
+// Activate event: clean up outdated caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -32,38 +34,55 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  // Tell the active service worker to take control of the page immediately.
   self.clients.claim();
 });
 
-// Fetch event: Network first, fallback to cache
-// We use Network First to get latest updates if online,
-// and fallback to cache to allow offline usage.
+// Fetch event:
+// Strategy: Cache-First with Stale-While-Revalidate for app assets.
+// This guarantees INSTANT (0ms) launch, even with poor or flaky Internet ("Lie-Fi").
 self.addEventListener('fetch', event => {
-  // We only want to handle GET requests for caching strategy
   if (event.request.method !== 'GET') return;
 
-  // Exclude API requests from SW cache (they are handled in app.js via localStorage)
-  if (event.request.url.includes('api.frankfurter.app') || event.request.url.includes('open.er-api.com')) {
-      return;
+  // Never cache or intercept live exchange rate API calls via SW (handled in app.js with localStorage & timeout)
+  if (event.request.url.includes('open.er-api.com')) {
+    return;
   }
 
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Clone the response and store it in cache for next time
-        // Accept basic (same-origin) and cors/opaque (CDN) for Tailwind
-        if (response && (response.status === 200 || response.status === 0)) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
+    caches.match(event.request).then(cachedResponse => {
+      // 1. If in cache, return immediately (zero wait time for user)
+      if (cachedResponse) {
+        // Fetch new version in background to update cache for next launch (non-blocking)
+        fetch(event.request)
+          .then(networkResponse => {
+            if (networkResponse && networkResponse.status === 200) {
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, networkResponse);
+              });
+            }
+          })
+          .catch(() => {
+            // Ignore network errors in background update
           });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Fallback to cache if network fails (offline mode)
-        return caches.match(event.request);
-      })
+
+        return cachedResponse;
+      }
+
+      // 2. If not in cache (very first visit without install), fetch from network
+      return fetch(event.request)
+        .then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Fallback if network totally fails
+          return caches.match('./index.html');
+        });
+    })
   );
 });
