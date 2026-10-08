@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Universal Currency Converter</title>
 
     <link rel="manifest" href="./manifest.json">
@@ -42,7 +42,7 @@
 
     <!-- Currency Selection Modal -->
     <div id="currencyModal" class="hidden fixed inset-0 bg-black/50 z-50 flex-col pb-safe">
-        <div id="modalSheet" class="mt-auto bg-white rounded-t-3xl max-h-[88dvh] h-[85dvh] flex flex-col shadow-2xl">
+        <div id="modalSheet" class="mt-auto bg-white rounded-t-3xl max-h-[85dvh] h-full flex flex-col shadow-2xl">
             <div class="p-4 border-b flex items-center justify-between flex-shrink-0">
                 <h2 class="text-xl font-bold text-gray-900">Choisir une devise</h2>
                 <button id="closeModalBtn" aria-label="Fermer" class="p-2 text-gray-400 hover:text-gray-800 cursor-pointer">

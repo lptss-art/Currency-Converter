@@ -152,8 +152,10 @@ body {
 .h-5 { height: 1.25rem; }
 .h-6 { height: 1.5rem; }
 .h-7 { height: 1.75rem; }
+.h-full { height: 100%; }
 .h-\[100dvh\] { height: 100dvh; }
 .h-\[85vh\] { height: 85vh; }
+.max-h-\[85dvh\] { max-height: 85dvh; }
 
 .max-w-sm { max-width: 24rem; }
 .max-w-\[40\%\] { max-width: 40%; }
