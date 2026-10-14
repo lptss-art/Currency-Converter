@@ -1,5 +1,8 @@
 # Fiche Google Play – textes à copier dans la Play Console
 
+Les visuels (icône 512, bannière 1024×500, captures d'écran FR et EN) sont dans le dossier `store/`.
+Le guide complet de publication est dans `PUBLICATION.md`.
+
 Limites Google : titre 30 caractères, description courte 80, description complète 4 000.
 Interdit dans le **titre** et l'**icône** : « gratuit », « free », « sans pub », « no ads », « meilleur », « #1 », emojis.
 Autorisé dans la **description complète** : c'est là qu'on met en avant « gratuit et sans publicité ».

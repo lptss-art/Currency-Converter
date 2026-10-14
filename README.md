@@ -39,8 +39,13 @@
 | `app.js` | Logique : traductions, conversion, clavier, sélecteur, glisser-déposer, mise à jour des taux |
 | `sw.js` | Service Worker (cache hors-ligne). **Incrémenter `CACHE_NAME` à chaque déploiement** pour que l'app installée récupère la nouvelle version |
 | `manifest.json` | Nom, couleurs et icônes de l'app installée |
-| `logo.svg` | Logo affiché dans l'en-tête |
-| `icon-*.png` | Icônes de l'app installée (dont la version `maskable` pour Android) |
+| `logo.svg` | Logo (source vectorielle, 5 Ko) affiché dans l'en-tête et dans l'onglet du navigateur |
+| `icon-*.png`, `apple-touch-icon.png` | Icônes de l'app installée (dont la version `maskable` pour Android), générées depuis `logo.svg` |
+| `privacy.html` | Politique de confidentialité (FR + EN), exigée par le Play Store |
+| `.well-known/assetlinks.json` | Liaison site ↔ app Android (à compléter, voir `PUBLICATION.md`) |
+| `store/` | Visuels de la fiche Play Store : icône 512, bannière 1024×500, captures d'écran FR et EN |
+| `STORE_LISTING.md` | Textes de la fiche Play Store (titre, descriptions FR + EN) |
+| `PUBLICATION.md` | Guide pas à pas pour publier l'app sur le Google Play Store |
 
 ---
 
@@ -85,16 +90,9 @@ npx wrangler pages deploy . --project-name currency-converter
 
 ---
 
-## 🛍️ Publication sur le Google Play Store (TWA)
+## 🛍️ Publication sur le Google Play Store
 
-Pour publier cette PWA sur le Google Play Store sans devoir réécrire l'application en Kotlin ou Flutter, vous pouvez utiliser la technologie **TWA (Trusted Web Activity)** :
-
-1. **Option simple avec [PWABuilder](https://www.pwabuilder.com/) :**
-   * Entrez l'URL de votre application déployée sur Cloudflare Pages.
-   * Vérifiez que le score PWA est au vert (Manifest, Service Worker, HTTPS, Icônes).
-   * Cliquez sur **« Package for Android »** pour générer un fichier `.aab` (Android App Bundle) prêt à être soumis sur la Google Play Console.
-2. **Configuration du Digital Asset Links :**
-   * Un fichier `assetlinks.json` doit être placé dans `/.well-known/assetlinks.json` sur Cloudflare pour prouver que vous êtes le propriétaire du domaine (cela supprime la barre d'adresse dans l'application Android).
+Tout est prêt (visuels, textes, politique de confidentialité). Suivez le guide pas à pas : **[PUBLICATION.md](PUBLICATION.md)**.
 
 ---
 
@@ -116,5 +114,5 @@ Puis ouvrez votre navigateur sur `http://localhost:8000`.
 
 ## 🗺️ Pistes d'amélioration
 
-- [ ] Alléger `logo.svg` (≈ 600 Ko pour une icône de 36 px) et supprimer les fichiers inutilisés (`logo.png`, `sortable.min.js`).
 - [ ] Couleur de la barre d'état iOS adaptée au mode sombre en mode installé.
+- [ ] Nom sous l'icône traduit en français dans l'app Android (réglage du projet Android généré).
