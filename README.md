@@ -1,4 +1,6 @@
-# 💱 Currency Converter PWA
+# 💱 Simple Currency Converter
+
+*Convertisseur devises simple* en français.
 
 > Convertisseur de devises universel, minimaliste, ultra-rapide et conçu pour fonctionner à 100% hors-ligne. Optimisé pour être installé comme une application native (PWA / TWA).
 
@@ -6,22 +8,39 @@
 
 ## ✨ Fonctionnalités
 
-* ⚡ **Ultra-fluide & Rapide :** Interface réactive conçue pour mobile avec pavé numérique intégré et retour haptique.
-* 🔄 **Calcul bidirectionnel en direct :** Modifiez n'importe quelle devise, toutes les autres s'ajustent instantanément en temps réel.
-* 📴 **100% Fonctionnel hors-ligne (Offline-First) :** Grâce au Service Worker et au stockage local (`localStorage`), l'application reste utilisable même en avion ou sans réseau avec les derniers taux récupérés.
-* ↕️ **Réorganisation par glisser-déposer :** Réorganisez l'ordre de vos devises favorites facilement (alimenté par SortableJS).
-* 🌍 **Support étendu des devises :** Plus de 160 monnaies mondiales avec recherche rapide par code ou nom de pays.
-* 📱 **Expérience App Native (PWA) :** Installable sur l'écran d'accueil iOS & Android, sans barre d'adresse ni interface de navigateur.
-* 🚀 **Prêt pour le Google Play Store :** Conforme aux critères PWA pour un empaquetage TWA (*Trusted Web Activity*) via Bubblewrap ou PWABuilder.
+* ⚡ **Rapide et fluide :** pavé numérique intégré avec retour haptique, ouverture instantanée avec les derniers taux enregistrés.
+* 🔄 **Conversion dans tous les sens :** touchez n'importe quelle devise pour la saisir, toutes les autres s'ajustent en direct. Changer de ligne ne modifie aucune valeur : le montant exact est conservé.
+* 🔢 **Saisie au format local :** séparateurs de milliers et virgule décimale en français (`1 234,5`), point en anglais (`1,234.5`).
+* 📴 **100 % hors-ligne :** Service Worker + `localStorage`, l'app reste utilisable en avion avec les derniers taux.
+* 🕒 **Taux à jour sans ralentir l'app :** mise à jour en arrière-plan au plus toutes les 3 h (à l'ouverture, au retour sur l'app ou quand le réseau revient). La date affichée est celle de publication des taux.
+* ↕️ **Réorganisation par appui long :** la ligne suit le doigt et les autres s'écartent en direct (glisser-déposer maison, sans librairie).
+* ➕ **Ajout via la recherche :** devises récentes et populaires en tête, puis la liste complète.
+* ↩️ **Annuler une suppression :** un bandeau « Annuler » apparaît quelques secondes après avoir retiré une devise.
+* 🌍 **Plus de 160 devises** avec recherche par code, nom ou pays (français et anglais, sans accents).
+* 🌙 **Mode sombre** automatique selon le réglage du téléphone.
+* 🌐 **Interface en français ou en anglais** selon la langue de l'appareil.
+* 📱 **Expérience app native (PWA) :** installable sur l'écran d'accueil iOS et Android, sans barre d'adresse.
+* 🚀 **Prêt pour le Google Play Store :** conforme aux critères PWA pour un empaquetage TWA (*Trusted Web Activity*) via Bubblewrap ou PWABuilder.
 
 ---
 
-## 🛠️ Stack Technique
+## 🛠️ Stack technique
 
-* **Front-end :** HTML5, Vanilla JavaScript (ES6+), Tailwind CSS
-* **PWA & Offline :** Service Worker (Cache API), Web App Manifest
-* **API Taux de Change :** [ExchangeRate-API (open.er-api.com)](https://open.er-api.com) — mise à jour quotidienne gratuite et sans clé API
-* **Librairie externe :** [SortableJS](https://sortablejs.github.io/Sortable/) (glisser-déposer tactile fluide)
+* **Front-end :** HTML5, JavaScript (ES6+) sans framework, CSS fait main (variables CSS, mode clair/sombre). Aucune dépendance externe, aucun build.
+* **PWA & hors-ligne :** Service Worker (Cache API), Web App Manifest
+* **API des taux de change :** [ExchangeRate-API (open.er-api.com)](https://open.er-api.com) — gratuite, sans clé API, mise à jour quotidienne
+
+### Structure des fichiers
+
+| Fichier | Rôle |
+| --- | --- |
+| `index.html` | Structure de la page (en-tête, liste, clavier, sélecteur de devise) |
+| `style.css` | Tous les styles ; couleurs centralisées dans les variables `:root` (clair) et `@media (prefers-color-scheme: dark)` (sombre) |
+| `app.js` | Logique : traductions, conversion, clavier, sélecteur, glisser-déposer, mise à jour des taux |
+| `sw.js` | Service Worker (cache hors-ligne). **Incrémenter `CACHE_NAME` à chaque déploiement** pour que l'app installée récupère la nouvelle version |
+| `manifest.json` | Nom, couleurs et icônes de l'app installée |
+| `logo.svg` | Logo affiché dans l'en-tête |
+| `icon-*.png` | Icônes de l'app installée (dont la version `maskable` pour Android) |
 
 ---
 
@@ -95,11 +114,7 @@ Puis ouvrez votre navigateur sur `http://localhost:8000`.
 
 ---
 
-## 🗺️ Roadmap & Optimisations prévues
+## 🗺️ Pistes d'amélioration
 
-- [ ] Compiler Tailwind CSS localement pour éliminer le script CDN de 3 Mo et garantir un chargement instantané.
-- [ ] Rendu DOM optimisé pour le pavé numérique (éviter de recréer les éléments à chaque frappe).
-- [ ] Prise en charge des touches physiques du clavier (ordinateur et tablettes).
-- [ ] Gestion dynamique des décimales pour les devises à très faible valeur (ex. JPY, KRW).
-- [ ] Ajout d'une touche `AC` (effacer tout d'un coup) et d'un bouton de rafraîchissement manuel des taux.
-- [ ] Génération d'icônes adaptatives (`maskable`) pour Android.
+- [ ] Alléger `logo.svg` (≈ 600 Ko pour une icône de 36 px) et supprimer les fichiers inutilisés (`logo.png`, `sortable.min.js`).
+- [ ] Couleur de la barre d'état iOS adaptée au mode sombre en mode installé.

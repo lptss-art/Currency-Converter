@@ -1,4 +1,4 @@
-const CACHE_NAME = 'currency-converter-v9';
+const CACHE_NAME = 'currency-converter-v16';
 // NB : on ne met PAS 'index.html' ici. Cloudflare Pages redirige /index.html -> / (308).
 // Une réponse "redirigée" servie à une navigation fait échouer le lancement de l'app installée
 // ("Ce site est inaccessible"). On met donc en cache uniquement './'.
@@ -6,7 +6,6 @@ const ASSETS_TO_CACHE = [
   './',
   'style.css',
   'app.js',
-  'sortable.min.js',
   'manifest.json',
   'icon-192x192.png',
   'icon-512x512.png',
@@ -48,6 +47,11 @@ self.addEventListener('fetch', event => {
   if (req.url.includes('open.er-api.com')) return;
 
   // Navigations (lancement de l'app, rechargement) : toujours servir la page d'accueil './'
+  // Les autres pages (ex. politique de confidentialité) passent directement par le réseau
+  if (req.mode === 'navigate') {
+    const path = new URL(req.url).pathname;
+    if (!(path.endsWith('/') || path.endsWith('/index.html'))) return;
+  }
   if (req.mode === 'navigate') {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);

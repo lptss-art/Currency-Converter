@@ -7,36 +7,35 @@ try:
     print("Reading generated image...")
     img = Image.open(input_path).convert("RGBA")
     
-    # Crop the bottom text out. Image is 1024x1024. Text is usually in the bottom 150px.
-    # We will crop to 1024x850
-    img = img.crop((0, 0, 1024, 850))
+    # The text "CURRENCY CONVERTER" is at the bottom. 
+    # Let's aggressively crop the bottom. Image is 1024x1024.
+    # The 3D element is usually centered in the top 75% of the image.
+    img = img.crop((0, 0, 1024, 750))
     
     print("Removing white background...")
     datas = img.getdata()
     new_data = []
     for item in datas:
-        # Check if the pixel is close to white
-        if item[0] > 240 and item[1] > 240 and item[2] > 240:
-            # Change near white to transparent
+        # Check if the pixel is close to white (allow some tolerance for anti-aliasing)
+        if item[0] > 235 and item[1] > 235 and item[2] > 235:
             new_data.append((255, 255, 255, 0))
         else:
             new_data.append(item)
             
     img.putdata(new_data)
     
-    print("Background removed. Cropping...")
+    print("Cropping bounding box...")
     bbox = img.getbbox()
     if bbox:
         img_cropped = img.crop(bbox)
     else:
         img_cropped = img
         
-    # We want a square image
     w, h = img_cropped.size
     size = max(w, h)
     
-    # Add a little padding (e.g., 5%)
-    padded_size = int(size * 1.1)
+    # Square with 5% padding
+    padded_size = int(size * 1.05)
     
     square_img = Image.new("RGBA", (padded_size, padded_size), (255, 255, 255, 0))
     offset = ((padded_size - w) // 2, (padded_size - h) // 2)
@@ -53,7 +52,7 @@ try:
     img_512 = square_img.resize((512, 512), Image.Resampling.LANCZOS)
     img_512.save("icon-512x512.png")
     
-    print("Saving icon-maskable-512x512.png (with solid background)...")
+    print("Saving icon-maskable-512x512.png...")
     maskable_bg = Image.new("RGBA", (512, 512), (255, 255, 255, 255)) 
     maskable_fg = square_img.resize((410, 410), Image.Resampling.LANCZOS)
     maskable_bg.paste(maskable_fg, ((512-410)//2, (512-410)//2), maskable_fg)

@@ -1,14 +1,14 @@
 {
-  "name": "Universal Currency Converter",
-  "short_name": "Converter",
-  "description": "Convertisseur de devises universel, minimaliste, ultra-rapide et 100% hors-ligne.",
+  "name": "Simple Currency Converter",
+  "short_name": "Currency",
+  "description": "Simple currency converter for travelling, works offline. Convertisseur de devises simple pour voyager, fonctionne hors-ligne.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f8fafc",
-  "theme_color": "#2563eb",
-  "lang": "fr",
+  "background_color": "#f4f6fa",
+  "theme_color": "#ffffff",
+  "lang": "en",
   "categories": ["finance", "utilities", "travel"],
   "icons": [
     {
