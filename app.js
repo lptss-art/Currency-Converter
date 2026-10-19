@@ -1118,6 +1118,8 @@ function renderCurrencies() {
             if (activeIndex !== index) {
                 setActiveRow(index);
                 renderCurrencies();
+            } else {
+                shouldResetValue = true;
             }
         });
 
@@ -1136,7 +1138,7 @@ function renderCurrencies() {
 
         row.innerHTML = `
             ${deleteHtml}
-            <div class="currency-selector cur-selector" data-index="${index}">
+            <div class="currency-selector cur-selector" data-index="${index}" role="button" tabindex="0" aria-label="${t.chooseCurrency} (${currency})">
                 <div class="cur-flag">${getFlagEmoji(currency)}</div>
                 <div class="cur-meta">
                     <div class="cur-code">
@@ -1168,9 +1170,17 @@ function renderCurrencies() {
 
     // Attach listeners
     document.querySelectorAll('.currency-selector').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const index = parseInt(e.currentTarget.dataset.index);
+        const handleOpen = (e) => {
+            e.stopPropagation();
+            const index = parseInt(btn.dataset.index, 10);
             openCurrencyModal(index);
+        };
+        btn.addEventListener('click', handleOpen);
+        btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleOpen(e);
+            }
         });
     });
 
