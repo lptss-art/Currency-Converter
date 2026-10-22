@@ -28,6 +28,8 @@ const i18n = {
         aboutRatesText: "Les taux proviennent d'ExchangeRate-API et sont mis à jour une fois par jour. Ils sont donnés à titre indicatif : le taux appliqué par votre banque, votre carte ou un bureau de change peut être différent (frais, marge). Ne les utilisez pas pour des transactions financières.",
         aboutPrivacyTitle: "Vie privée",
         aboutPrivacyText: "L'application ne collecte aucune donnée personnelle et ne contient ni publicité ni traceur. Vos devises restent sur votre téléphone. La seule connexion sert à télécharger les taux.",
+        aboutContactTitle: "Contact & Support",
+        aboutContactText: "Une question, un bug ou une suggestion ? Écrivez-nous :",
         privacyPolicy: "Politique de confidentialité",
         version: "Version",
         appName: "Convertisseur devises simple",
@@ -64,6 +66,8 @@ const i18n = {
         aboutRatesText: "Rates come from ExchangeRate-API and are updated once a day. They are indicative only: the rate applied by your bank, card or an exchange office may differ (fees, margin). Do not use them for financial transactions.",
         aboutPrivacyTitle: "Privacy",
         aboutPrivacyText: "The app collects no personal data and contains no ads or trackers. Your currencies stay on your phone. The only connection is used to download the rates.",
+        aboutContactTitle: "Contact & Support",
+        aboutContactText: "Questions, feedback or suggestions? Reach us at:",
         privacyPolicy: "Privacy policy",
         version: "Version",
         appName: "Simple Currency Converter",
@@ -114,6 +118,8 @@ const DECIMAL_SEP = (1.5).toLocaleString(locale).replace(/\d/g, '').charAt(0) ||
     setText('aboutPrivacyTitle', t.aboutPrivacyTitle);
     setText('aboutPrivacyText', t.aboutPrivacyText);
     setText('aboutPrivacyLink', t.privacyPolicy);
+    setText('aboutContactTitle', t.aboutContactTitle);
+    setText('aboutContactText', t.aboutContactText);
     // Séparateur décimal local sur la touche du clavier (« , » en français)
     const decimalKey = document.getElementById('decimalKey');
     if (decimalKey) {

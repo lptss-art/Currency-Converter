@@ -7,7 +7,7 @@ Tout ce qui est nécessaire est dans ce dépôt ; il reste seulement à remplir 
 
 ## 0. Avant de commencer — À FAIRE
 
-- [ ] Remplacer `CONTACT_EMAIL` (2 endroits) dans `privacy.html` par une adresse de contact.
+- [x] Adresse de contact renseignée (`landolt.studio@gmail.com` dans `privacy.html` et dans l'écran À propos).
 - [ ] Pousser le code et vérifier que le site est en ligne (Cloudflare Pages), par exemple `https://VOTRE-SITE.pages.dev`.
 - [ ] Vérifier que ces adresses s'ouvrent :
   - `https://VOTRE-SITE.pages.dev/` (l'app)
@@ -34,7 +34,7 @@ Tout ce qui est nécessaire est dans ce dépôt ; il reste seulement à remplir 
 
 1. Aller sur [pwabuilder.com](https://www.pwabuilder.com), entrer l'adresse du site, lancer l'analyse.
 2. Choisir **Android** → **Generate Package** → options :
-   - **Package ID** : identifiant unique et **définitif** (impossible à changer ensuite), par ex. `com.lptss.currencyconverter`.
+   - **Package ID** : identifiant unique et **définitif** (impossible à changer ensuite), par ex. `com.landoltstudio.currencyconverter`.
    - **App name** : `Simple Currency Converter` — **Launcher name** (sous l'icône) : `Currency`.
    - **Version** : `1.0.0` / version code `1`.
    - **Theme / Status bar color** : `#ffffff` — **Background / Splash color** : `#eef3fa`.
