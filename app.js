@@ -1144,25 +1144,20 @@ function renderCurrencies() {
 
         row.innerHTML = `
             ${deleteHtml}
-            <div class="cur-body">
-                <div class="cur-main-row">
-                    <div class="currency-selector cur-selector" data-index="${index}" role="button" tabindex="0" aria-label="${t.chooseCurrency} (${currency})">
-                        <div class="cur-flag">${getFlagEmoji(currency)}</div>
-                        <div class="cur-code">
-                            ${currency}
-                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
-
-                    <div class="cur-value no-keyboard">
-                        <span class="cur-amount" id="currency-val-${index}">${displayValue}</span>
-                        <span class="cur-symbol">${getCurrencySymbol(currency)}</span>
-                    </div>
+            <div class="cur-flag-wrap currency-selector" data-index="${index}" role="button" tabindex="0" aria-label="${t.chooseCurrency} (${currency})">
+                <div class="cur-flag">${getFlagEmoji(currency)}</div>
+            </div>
+            <div class="cur-meta">
+                <div class="cur-code currency-selector" data-index="${index}" role="button" tabindex="0" aria-label="${t.chooseCurrency} (${currency})">
+                    ${currency}
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
+                <div class="cur-name">${meta.nameFr}</div>
+            </div>
 
-                <div class="cur-sub-row">
-                    <span class="cur-name">${meta.nameFr}</span>
-                </div>
+            <div class="cur-value no-keyboard">
+                <span class="cur-amount" id="currency-val-${index}">${displayValue}</span>
+                <span class="cur-symbol">${getCurrencySymbol(currency)}</span>
             </div>
         `;
 
