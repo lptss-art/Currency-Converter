@@ -31,6 +31,15 @@ const i18n = {
         aboutContactTitle: "Contact & Support",
         aboutContactText: "Une question, un bug ou une suggestion ? Écrivez-nous :",
         privacyPolicy: "Politique de confidentialité",
+        privSec1Title: "Données collectées",
+        privSec1Text: "L'application ne collecte, ne stocke sur un serveur et ne partage aucune donnée personnelle. Elle ne demande aucun compte, ne contient ni publicité ni outil de suivi ou de statistiques.",
+        privSec2Title: "Données enregistrées sur votre appareil",
+        privSec2Text: "La liste et l'ordre de vos devises, ainsi que les derniers taux téléchargés, sont enregistrés uniquement sur votre téléphone (stockage local de l'application) pour qu'elle fonctionne hors-ligne. Ils sont supprimés si vous désinstallez l'application ou effacez ses données.",
+        privSec3Title: "Connexion à Internet",
+        privSec3Text: "L'application se connecte uniquement pour télécharger les taux de change auprès d'ExchangeRate-API. Cette requête ne contient aucune information vous concernant ; comme pour toute connexion Internet, ce service reçoit techniquement l'adresse IP de l'appareil.",
+        privSec4Title: "Taux de change",
+        privSec4Text: "Les taux sont mis à jour une fois par jour et donnés à titre indicatif. Ils peuvent différer de ceux appliqués par votre banque ou un bureau de change et ne doivent pas servir pour des transactions financières.",
+        privSec5Title: "Contact",
         version: "Version",
         appName: "Convertisseur devises simple",
         inList: "Dans la liste",
@@ -69,6 +78,15 @@ const i18n = {
         aboutContactTitle: "Contact & Support",
         aboutContactText: "Questions, feedback or suggestions? Reach us at:",
         privacyPolicy: "Privacy policy",
+        privSec1Title: "Data collected",
+        privSec1Text: "The app does not collect, store on a server or share any personal data. It requires no account and contains no ads, tracking or analytics.",
+        privSec2Title: "Data stored on your device",
+        privSec2Text: "Your list and order of currencies, and the last downloaded rates, are stored only on your phone (app local storage) so the app works offline. They are deleted if you uninstall the app or clear its data.",
+        privSec3Title: "Internet connection",
+        privSec3Text: "The app only connects to download exchange rates from ExchangeRate-API. The request contains no information about you; as with any Internet connection, this service technically receives the device's IP address.",
+        privSec4Title: "Exchange rates",
+        privSec4Text: "Rates are updated once a day and are indicative only. They may differ from those applied by your bank or an exchange office and must not be used for financial transactions.",
+        privSec5Title: "Contact",
         version: "Version",
         appName: "Simple Currency Converter",
         inList: "In list",
@@ -81,10 +99,16 @@ const userLang = (navigator.language || navigator.userLanguage || 'en').substrin
 const lang = (userLang === 'fr') ? 'fr' : 'en';
 const locale = navigator.language || 'en-US';
 const t = i18n[lang];
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.2';
 const RATES_ATTRIBUTION_URL = 'https://www.exchangerate-api.com';
 // Séparateur décimal local (« , » en français, « . » en anglais)
-const DECIMAL_SEP = (1.5).toLocaleString(locale).replace(/\d/g, '').charAt(0) || '.';
+const DECIMAL_SEP = (() => {
+    try {
+        const part = new Intl.NumberFormat(locale).formatToParts(1.5).find(p => p.type === 'decimal');
+        if (part && (part.value === ',' || part.value === '.')) return part.value;
+    } catch (e) {}
+    return lang === 'fr' ? ',' : '.';
+})();
 
 // Apply translations to static HTML
 // Le script est chargé en fin de <body> : le DOM est prêt, on traduit tout de suite
@@ -111,6 +135,7 @@ const DECIMAL_SEP = (1.5).toLocaleString(locale).replace(/\d/g, '').charAt(0) ||
     const setAria = (id, txt) => { const el = document.getElementById(id); if (el) el.setAttribute('aria-label', txt); };
     setAria('aboutBtn', t.about);
     setAria('closeAboutBtn', t.close);
+    setAria('closePrivacyBtn', t.close);
     // Textes de l'écran "À propos"
     setText('aboutTitle', t.about);
     setText('aboutRatesTitle', t.aboutRatesTitle);
@@ -120,6 +145,17 @@ const DECIMAL_SEP = (1.5).toLocaleString(locale).replace(/\d/g, '').charAt(0) ||
     setText('aboutPrivacyLink', t.privacyPolicy);
     setText('aboutContactTitle', t.aboutContactTitle);
     setText('aboutContactText', t.aboutContactText);
+    // Textes de l'écran "Politique de confidentialité"
+    setText('privacyModalTitle', t.privacyPolicy);
+    setText('privSec1Title', t.privSec1Title);
+    setText('privSec1Text', t.privSec1Text);
+    setText('privSec2Title', t.privSec2Title);
+    setText('privSec2Text', t.privSec2Text);
+    setText('privSec3Title', t.privSec3Title);
+    setText('privSec3Text', t.privSec3Text);
+    setText('privSec4Title', t.privSec4Title);
+    setText('privSec4Text', t.privSec4Text);
+    setText('privSec5Title', t.privSec5Title);
     // Séparateur décimal local sur la touche du clavier (« , » en français)
     const decimalKey = document.getElementById('decimalKey');
     if (decimalKey) {
@@ -137,19 +173,40 @@ function safeGetStorage(key, fallback) {
     }
 }
 
-// Fallback baseline exchange rates (relative to EUR) so the app works immediately even on first launch offline
+// Fallback baseline exchange rates (relative to EUR) for ALL 154 supported currencies
+// Ensures 100% of currencies work immediately even on first launch in airplane mode
 const DEFAULT_RATES = {
-    EUR: 1,
-    USD: 1.08,
-    GBP: 0.85,
-    JPY: 165.2,
-    CHF: 0.96,
-    CAD: 1.48,
-    AUD: 1.66,
-    TWD: 34.8,
-    TND: 3.37,
-    MAD: 10.75,
-    DZD: 144.5
+    AED: 4.0987, AFN: 72.3304, ALL: 90.9858, AMD: 402.5843, ANG: 1.9977,
+    AOA: 1036.358, ARS: 1715.7528, AUD: 1.5879, AWG: 1.9977, AZN: 1.9019,
+    BAM: 1.9558, BBD: 2.2321, BDT: 138.4056, BGN: 1.9558, BHD: 0.4196,
+    BIF: 3343.3378, BMD: 1.116, BND: 1.4266, BOB: 13.5185, BRL: 6.0668,
+    BSD: 1.116, BTN: 105.9688, BWP: 15.5855, BYN: 3.2897, BZD: 2.2321,
+    CAD: 1.5587, CDF: 2585.6767, CHF: 0.9201, CLP: 1106.8845, CNY: 7.4313,
+    COP: 3566.5711, CRC: 508.6521, CUP: 26.7851, CVE: 110.265, CZK: 24.3615,
+    DJF: 198.3449, DKK: 7.474, DOP: 67.7917, DZD: 151.7914, EGP: 62.2688,
+    ERN: 16.7407, ETB: 184.1836, EUR: 1, FJD: 2.4971, FKP: 0.8336,
+    GBP: 0.8335, GEL: 2.8995, GHS: 12.9974, GIP: 0.8336, GMD: 83.3008,
+    GNF: 9832.8365, GTQ: 8.5506, GYD: 233.9422, HKD: 8.752, HNL: 30.0923,
+    HTG: 146.2139, HUF: 365.7538, IDR: 20224.1281, ILS: 3.5036, INR: 105.9782,
+    IQD: 1694.064, IRR: 2089259.36, ISK: 135.9935, JMD: 177.5889, JOD: 0.7913,
+    JPY: 175.7986, KES: 145.307, KGS: 97.7095, KHR: 4585.2667, KMF: 491.9678,
+    KRW: 1488.8603, KWD: 0.3468, KYD: 0.93, KZT: 507.604, LAK: 24990.3513,
+    LBP: 99886.1735, LKR: 371.2091, LRD: 190.4322, LSL: 18.6299, LYD: 7.1737,
+    MAD: 10.9903, MDL: 20.1367, MGA: 5106.8978, MKD: 61.497, MMK: 2347.5396,
+    MNT: 4015.4776, MOP: 9.0153, MRU: 45.2553, MUR: 52.8567, MVR: 17.2935,
+    MWK: 1935.2243, MXN: 20.9841, MYR: 4.5283, MZN: 71.0269, NAD: 18.6299,
+    NGN: 1505.5834, NIO: 41.169, NOK: 10.2831, NPR: 169.5501, NZD: 1.9833,
+    OMR: 0.4291, PAB: 1.116, PEN: 3.8725, PGK: 5.0513, PHP: 71.0835,
+    PKR: 308.8148, PLN: 4.4107, PYG: 6515.3787, QAR: 4.0624, RON: 5.3425,
+    RSD: 117.5272, RUB: 89.9813, RWF: 1646.5711, SAR: 4.1852, SBD: 8.8729,
+    SCR: 16.2531, SDG: 499.1219, SEK: 10.9616, SGD: 1.4265, SHP: 0.8336,
+    SLE: 25.5235, SOS: 638.0241, SRD: 42.005, SSP: 6808.117, STN: 24.5,
+    SYP: 136.1519, SZL: 18.6299, THB: 37.6715, TJS: 10.3189, TMT: 3.9112,
+    TND: 3.3642, TOP: 2.6675, TRY: 55.7239, TTD: 7.6641, TVD: 1.5881,
+    TWD: 36.3895, TZS: 2938.7551, UAH: 50.7654, UGX: 4752.0961, USD: 1.116,
+    UYU: 44.9953, UZS: 13288.9515, VES: 991.2539, VND: 28779.2988, VUV: 132.9687,
+    WST: 3.0589, XAF: 655.957, XCD: 3.0133, XOF: 655.957, XPF: 119.332,
+    YER: 264.1859, ZAR: 18.6289, ZMW: 22.5685, ZWL: 29.7161
 };
 
 // Complete global currency list so all currencies are ALWAYS searchable even before API loads
@@ -181,7 +238,7 @@ const NON_TRAVEL_CURRENCIES = new Set(['XDR', 'CLF', 'CNH', 'HRK', 'SLL', 'BTC',
 let currencies = safeGetStorage('userCurrencies', ['EUR', 'USD', 'GBP', 'JPY', 'TWD'])
     .filter(c => !NON_TRAVEL_CURRENCIES.has(c));
 if (currencies.length === 0) currencies = ['EUR', 'USD'];
-let exchangeRates = safeGetStorage('exchangeRates', DEFAULT_RATES);
+let exchangeRates = { ...DEFAULT_RATES, ...safeGetStorage('exchangeRates', {}) };
 let lastFetchDate = localStorage.getItem('lastFetchDate') || null;   // date des taux (AAAA-MM-JJ)
 let lastFetchTime = parseInt(localStorage.getItem('lastFetchTime'), 10) || 0; // dernier téléchargement (ms)
 const RATES_MAX_AGE = 3 * 60 * 60 * 1000; // on ne retélécharge pas les taux avant 3 h
@@ -367,6 +424,7 @@ function getFlagEmoji(currencyCode) {
     if (currencyCode === 'JPY') return '🇯🇵';
     if (currencyCode === 'XOF' || currencyCode === 'XAF') return '🌍'; // Franc CFA
     if (currencyCode === 'XCD') return '🌴'; // Dollar des Caraïbes orientales
+    if (currencyCode === 'XPF') return '🇵🇫'; // Franc CFP (Pacifique)
     if (currencyCode === 'ANG') return '🇨🇼';
 
     // Standard ISO 4217 mapping
@@ -613,8 +671,9 @@ function setupReorder() {
     }, true);
 }
 
-// Register Service Worker
+// Register Service Worker (uniquement sur le web ; dans l'app Android native, les fichiers sont déjà dans assets/)
 function registerServiceWorker() {
+    if (location.hostname === 'appassets.local') return;
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').then(reg => {
@@ -747,6 +806,7 @@ function popLayer(name) {
 }
 window.addEventListener('popstate', () => {
     if (ignoreNextPop) { ignoreNextPop = false; return; }
+    if (!privacyModal.classList.contains('hidden')) { closePrivacy(true); return; }
     if (!aboutModal.classList.contains('hidden')) { closeAbout(true); return; }
     if (!currencyModal.classList.contains('hidden')) { closeCurrencyModal(true); return; }
     if (isEditingMode) { setEditingMode(false, true); }
@@ -762,8 +822,9 @@ function setEditingMode(on, fromBackButton = false) {
     renderCurrencies();
 }
 
-// ---------- À propos ----------
+// ---------- À propos & Politique de confidentialité ----------
 const aboutModal = document.getElementById('aboutModal');
+const privacyModal = document.getElementById('privacyModal');
 function openAbout() {
     document.getElementById('aboutVersion').textContent = `${t.version} ${APP_VERSION}`;
     aboutModal.classList.remove('hidden');
@@ -773,6 +834,16 @@ function closeAbout(fromBackButton = false) {
     if (aboutModal.classList.contains('hidden')) return;
     aboutModal.classList.add('hidden');
     if (!fromBackButton) popLayer('about');
+}
+function openPrivacy(e) {
+    if (e) e.preventDefault();
+    privacyModal.classList.remove('hidden');
+    pushLayer('privacy');
+}
+function closePrivacy(fromBackButton = false) {
+    if (privacyModal.classList.contains('hidden')) return;
+    privacyModal.classList.add('hidden');
+    if (!fromBackButton) popLayer('privacy');
 }
 
 function pickCurrency(code) {
@@ -925,6 +996,11 @@ function setupEventListeners() {
     document.getElementById('aboutBtn').addEventListener('click', openAbout);
     document.getElementById('closeAboutBtn').addEventListener('click', () => closeAbout());
     aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) closeAbout(); });
+
+    // Politique de confidentialité (modale intégrée hors-ligne)
+    document.getElementById('aboutPrivacyLink').addEventListener('click', openPrivacy);
+    document.getElementById('closePrivacyBtn').addEventListener('click', () => closePrivacy());
+    privacyModal.addEventListener('click', (e) => { if (e.target === privacyModal) closePrivacy(); });
 
     // Touch & Click handling with long-press support on delete key
     keypadBtns.forEach(btn => {

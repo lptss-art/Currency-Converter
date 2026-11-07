@@ -1,0 +1,75 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.landoltstudio.currencyconverter'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.landoltstudio.currencyconverter"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            def ksFile = file("../../release-key.jks")
+            def keyInfoFile = file("../../signing-key-info.txt")
+            def ksPass = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            if (!ksPass && keyInfoFile.exists()) {
+                def m = (keyInfoFile.text =~ /storePassword\)\s*:\s*(\S+)/)
+                if (m.find()) {
+                    ksPass = m.group(1)
+                }
+            }
+            if (ksFile.exists() && ksPass) {
+                storeFile ksFile
+                storePassword ksPass
+                keyAlias "currency-key"
+                keyPassword ksPass
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// Copie automatique des fichiers web dans assets/ avant chaque build Android
+tasks.register('syncWebAssets', Copy) {
+    from('../../') {
+        include 'index.html'
+        include 'style.css'
+        include 'app.js'
+        include 'sw.js'
+        include 'manifest.json'
+        include 'privacy.html'
+        include 'logo.svg'
+        include 'icon-192x192.png'
+        include 'icon-512x512.png'
+        include 'icon-maskable-512x512.png'
+        include 'apple-touch-icon.png'
+    }
+    into 'src/main/assets'
+}
+
+preBuild.dependsOn syncWebAssets
+
+dependencies {
+}

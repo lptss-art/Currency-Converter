@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Thème CLAIR. La WebView choisit clair/sombre (prefers-color-scheme) d'après isLightTheme :
+         il doit donc suivre le mode du téléphone. Version sombre : values-night-v29/ -->
+    <style name="AppTheme" parent="android:Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@color/splash_bg</item>
+        <item name="android:statusBarColor">#ffffff</item>
+        <item name="android:navigationBarColor">#ffffff</item>
+        <item name="android:isLightTheme">true</item>
+        <!-- Pas de voile gris derrière la barre à 3 boutons (Android 15+) -->
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+    <color name="splash_bg">#eef3fa</color>
+    <color name="ic_launcher_background">#eef3fa</color>
+</resources>

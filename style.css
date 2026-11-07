@@ -68,7 +68,10 @@ svg { display: block; flex-shrink: 0; }
 }
 
 /* ---------- Layout ---------- */
-html { background: var(--bg); }
+html {
+  background: var(--bg);
+  touch-action: pan-x pan-y; /* pas de zoom (pincer / double-tap) : c'est une app, pas une page */
+}
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -371,7 +374,7 @@ body {
 /* ---------- Sélecteur de devise (feuille) ---------- */
 .sheet-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0; /* (pas "inset" : inconnu des vieilles WebView) */
   z-index: 50;
   display: flex;
   flex-direction: column;
