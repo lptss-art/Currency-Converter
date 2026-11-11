@@ -7,11 +7,21 @@ Limites Google : titre 30 caractères, description courte 80, description compl�
 Interdit dans le **titre** et l'**icône** : « gratuit », « free », « sans pub », « no ads », « meilleur », « #1 », emojis.
 Autorisé dans la **description complète** : c'est là qu'on met en avant « gratuit et sans publicité ».
 
+### Les trois noms de l'app
+
+| Où | Français | Anglais | Où le modifier |
+| --- | --- | --- | --- |
+| Titre sur le Play Store | `Devises - Convertisseur voyage` | `Simple Currency Converter` | Play Console → Fiche Play Store principale (par langue) |
+| Nom dans l'app (en-tête, À propos, onglet) | `Convertisseur de devises` | `Simple Currency Converter` | `app.js` (`appName`) |
+| Nom sous l'icône | `Devises` | `Currency` | `android/app/src/main/res/values-fr/strings.xml` et `values/strings.xml` |
+
+Le titre du Store peut différer du nom dans l'app : Google demande seulement qu'il décrive honnêtement l'app.
+
 ---
 
 ## Français (fr-FR)
 
-**Titre** (30 max) : `Convertisseur devises simple` (28)
+**Titre** (30 max) : `Devises - Convertisseur voyage` (30)
 
 **Description courte** (80 max) — 68 caractères :
 

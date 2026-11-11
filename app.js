@@ -41,7 +41,7 @@ const i18n = {
         privSec4Text: "Les taux sont mis à jour une fois par jour et donnés à titre indicatif. Ils peuvent différer de ceux appliqués par votre banque ou un bureau de change et ne doivent pas servir pour des transactions financières.",
         privSec5Title: "Contact",
         version: "Version",
-        appName: "Convertisseur devises simple",
+        appName: "Convertisseur de devises",
         inList: "Dans la liste",
         quoteOpen: "« ",
         quoteClose: " »"
@@ -99,7 +99,7 @@ const userLang = (navigator.language || navigator.userLanguage || 'en').substrin
 const lang = (userLang === 'fr') ? 'fr' : 'en';
 const locale = navigator.language || 'en-US';
 const t = i18n[lang];
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 const RATES_ATTRIBUTION_URL = 'https://www.exchangerate-api.com';
 // Séparateur décimal local (« , » en français, « . » en anglais)
 const DECIMAL_SEP = (() => {

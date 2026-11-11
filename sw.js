@@ -1,4 +1,4 @@
-const CACHE_NAME = 'currency-converter-v21';
+const CACHE_NAME = 'currency-converter-v22';
 // NB : on ne met PAS 'index.html' ici. Cloudflare Pages redirige /index.html -> / (308).
 // Une réponse "redirigée" servie à une navigation fait échouer le lancement de l'app installée
 // ("Ce site est inaccessible"). On met donc en cache uniquement './'.

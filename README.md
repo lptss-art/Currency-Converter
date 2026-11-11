@@ -1,6 +1,6 @@
 # 💱 Simple Currency Converter
 
-*Convertisseur devises simple* en français.
+*Convertisseur de devises* en français (titre Play Store FR : *Devises - Convertisseur voyage*, nom sous l'icône : *Devises*). Détail des noms dans [STORE_LISTING.md](STORE_LISTING.md).
 
 > Convertisseur de devises universel, minimaliste, ultra-rapide et conçu pour fonctionner à 100% hors-ligne. Optimisé pour être installé comme une application native (PWA / TWA).
 
@@ -16,7 +16,7 @@
 * ↕️ **Réorganisation par appui long :** la ligne suit le doigt et les autres s'écartent en direct (glisser-déposer maison, sans librairie).
 * ➕ **Ajout via la recherche :** devises récentes et populaires en tête, puis la liste complète.
 * ↩️ **Annuler une suppression :** un bandeau « Annuler » apparaît quelques secondes après avoir retiré une devise.
-* 🌍 **Plus de 160 devises** avec recherche par code, nom ou pays (français et anglais, sans accents).
+* 🌍 **Plus de 150 devises** avec recherche par code, nom ou pays (français et anglais, sans accents).
 * 🌙 **Mode sombre** automatique selon le réglage du téléphone.
 * 🌐 **Interface en français ou en anglais** selon la langue de l'appareil.
 * 📱 **Expérience app native (PWA) :** installable sur l'écran d'accueil iOS et Android, sans barre d'adresse.
@@ -115,4 +115,3 @@ Puis ouvrez votre navigateur sur `http://localhost:8000`.
 ## 🗺️ Pistes d'amélioration
 
 - [ ] Couleur de la barre d'état iOS adaptée au mode sombre en mode installé.
-- [ ] Nom sous l'icône traduit en français dans l'app Android (réglage du projet Android généré).

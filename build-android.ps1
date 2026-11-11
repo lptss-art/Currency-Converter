@@ -71,8 +71,8 @@ Write-Output "2/6 Compilation des ressources Android (aapt2)..."
     --java "$workDir\gen" `
     --min-sdk-version 24 `
     --target-sdk-version 36 `
-    --version-code 4 `
-    --version-name "1.0.2" `
+    --version-code 5 `
+    --version-name "1.0.3" `
     -o "$workDir\unaligned.apk" `
     "$workDir\compiled_res\res.zip"
 
@@ -106,8 +106,8 @@ Write-Output "5/6 Assemblage du module de base au format Protobuf pour Google Pl
     -A $assetsDir `
     --min-sdk-version 24 `
     --target-sdk-version 36 `
-    --version-code 4 `
-    --version-name "1.0.2" `
+    --version-code 5 `
+    --version-name "1.0.3" `
     -o "$workDir\proto_base.zip" `
     "$workDir\compiled_res\res.zip"
 

@@ -36,6 +36,7 @@ Tout ce qui est nécessaire est dans ce dépôt ; il reste seulement à remplir 
 2. Choisir **Android** → **Generate Package** → options :
    - **Package ID** : identifiant unique et **définitif** (impossible à changer ensuite), par ex. `com.landoltstudio.currencyconverter`.
    - **App name** : `Simple Currency Converter` — **Launcher name** (sous l'icône) : `Currency`.
+     En français, le nom sous l'icône est `Devises` (`values-fr/strings.xml`) et le nom dans l'app `Convertisseur de devises`. Voir le tableau des noms dans `STORE_LISTING.md`.
    - **Version** : `1.0.0` / version code `1`.
    - **Theme / Status bar color** : `#ffffff` — **Background / Splash color** : `#eef3fa`.
    - **Signing key** : « Create new ».
